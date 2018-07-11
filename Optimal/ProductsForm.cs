@@ -57,11 +57,18 @@ namespace Optimal
 			if (pv.Barcode == null) pv.Barcode = "";
 			if (pv.SKU == null) pv.SKU = "";
 			ProductVariant pv2 = await Shopify.UpdateVariant(pv);
+			this.textSearch.Select();
+			this.textSearch.SelectAll();
 		}
 
 		private void buttonSearch_Click(object sender, EventArgs e)
 		{
-			int start = this.dataGridView1.CurrentCell.RowIndex + 1;
+			this.search();
+		}
+
+		private void search()
+		{
+			int start = (this.dataGridView1.CurrentCell.RowIndex + 1) % this.dataGridView1.RowCount;
 			int i = start;
 			do
 			{
@@ -69,11 +76,13 @@ namespace Optimal
 				if (flat.Name.Contains(this.textSearch.Text))
 				{
 					this.dataGridView1.CurrentCell = this.dataGridView1.Rows[i].Cells["Barcode"];
+					this.dataGridView1.Select();
 					break;
 				}
 				else if (flat.Barcode == this.textSearch.Text)
 				{
 					this.dataGridView1.CurrentCell = this.dataGridView1.Rows[i].Cells["InventoryQuantity"];
+					this.dataGridView1.Select();
 					break;
 				}
 				i = (i + 1) % this.dataGridView1.RowCount;
@@ -140,5 +149,17 @@ namespace Optimal
 			}
 		}
 
+		private void textSearch_KeyPress(object sender, KeyPressEventArgs e)
+		{
+			System.Diagnostics.Debug.Write(e.KeyChar);
+			if (e.KeyChar == '\r')
+			{
+				this.search();
+			}
+			if (e.KeyChar == '\n')
+			{
+				this.search();
+			}
+		}
 	}
 }

@@ -46,6 +46,7 @@ namespace Optimal
             | System.Windows.Forms.AnchorStyles.Right)));
 			this.dataGridView1.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
 			this.dataGridView1.Location = new System.Drawing.Point(12, 12);
+			this.dataGridView1.MultiSelect = false;
 			this.dataGridView1.Name = "dataGridView1";
 			this.dataGridView1.Size = new System.Drawing.Size(896, 359);
 			this.dataGridView1.TabIndex = 0;
@@ -53,11 +54,13 @@ namespace Optimal
 			// 
 			// textSearch
 			// 
+			this.textSearch.AcceptsReturn = true;
 			this.textSearch.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
 			this.textSearch.Location = new System.Drawing.Point(89, 401);
 			this.textSearch.Name = "textSearch";
 			this.textSearch.Size = new System.Drawing.Size(258, 20);
 			this.textSearch.TabIndex = 1;
+			this.textSearch.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.textSearch_KeyPress);
 			// 
 			// buttonSearch
 			// 

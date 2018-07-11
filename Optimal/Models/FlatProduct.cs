@@ -13,8 +13,8 @@ namespace Optimal.Models
 		public string Vendor { get { return this.Product.Vendor; } }
 		public string Name { get { return this.Product.Title; } }
 		public string Option1 { get { return this.ProductVariant.Option1; } }
-		public string Option2 { get { return this.ProductVariant.Option1; } }
-		public string Option3 { get { return this.ProductVariant.Option1; } }
+		public string Option2 { get { return this.ProductVariant.Option2; } }
+		public string Option3 { get { return this.ProductVariant.Option3; } }
 
 		public decimal? Price { get { return this.ProductVariant.Price; } set { this.ProductVariant.Price = value; } }
 		public string SKU { get { return this.ProductVariant.SKU; } set { this.ProductVariant.SKU = value; } }
