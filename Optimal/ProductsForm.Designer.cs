@@ -47,11 +47,12 @@ namespace Optimal
 			this.dataGridView1.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
 			this.dataGridView1.Location = new System.Drawing.Point(12, 12);
 			this.dataGridView1.Name = "dataGridView1";
-			this.dataGridView1.Size = new System.Drawing.Size(776, 359);
+			this.dataGridView1.Size = new System.Drawing.Size(896, 359);
 			this.dataGridView1.TabIndex = 0;
 			// 
 			// textSearch
 			// 
+			this.textSearch.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
 			this.textSearch.Location = new System.Drawing.Point(89, 401);
 			this.textSearch.Name = "textSearch";
 			this.textSearch.Size = new System.Drawing.Size(258, 20);
@@ -59,6 +60,7 @@ namespace Optimal
 			// 
 			// buttonSearch
 			// 
+			this.buttonSearch.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
 			this.buttonSearch.Location = new System.Drawing.Point(432, 403);
 			this.buttonSearch.Name = "buttonSearch";
 			this.buttonSearch.Size = new System.Drawing.Size(75, 23);
@@ -71,12 +73,13 @@ namespace Optimal
 			// 
 			this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
 			this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-			this.ClientSize = new System.Drawing.Size(800, 450);
+			this.ClientSize = new System.Drawing.Size(920, 450);
 			this.Controls.Add(this.buttonSearch);
 			this.Controls.Add(this.textSearch);
 			this.Controls.Add(this.dataGridView1);
 			this.Name = "ProductsForm";
 			this.Text = "Products";
+			this.WindowState = System.Windows.Forms.FormWindowState.Maximized;
 			this.Load += new System.EventHandler(this.ProductsForm_Load);
 			((System.ComponentModel.ISupportInitialize)(this.dataGridView1)).EndInit();
 			this.ResumeLayout(false);
