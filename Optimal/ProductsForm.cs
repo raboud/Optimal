@@ -79,5 +79,66 @@ namespace Optimal
 				i = (i + 1) % this.dataGridView1.RowCount;
 			} while (i != start);
 		}
+
+		private void dataGridView1_EditingControlShowing(object sender, DataGridViewEditingControlShowingEventArgs e)
+		{
+			e.Control.KeyPress -= new KeyPressEventHandler(DecimalColumn_KeyPress);
+			e.Control.KeyPress -= new KeyPressEventHandler(NumericColumn_KeyPress);
+
+			if (dataGridView1.CurrentCell.ColumnIndex == dataGridView1.Columns["Price"].Index) //Desired Column
+			{
+				TextBox tb = e.Control as TextBox;
+				if (tb != null)
+				{
+					tb.KeyPress += new KeyPressEventHandler(DecimalColumn_KeyPress);
+				}
+			}
+			if (dataGridView1.CurrentCell.ColumnIndex == dataGridView1.Columns["Barcode"].Index) //Desired Column
+			{
+				TextBox tb = e.Control as TextBox;
+				if (tb != null)
+				{
+					tb.KeyPress += new KeyPressEventHandler(NumericColumn_KeyPress);
+				}
+			}
+			if (dataGridView1.CurrentCell.ColumnIndex == dataGridView1.Columns["InventoryQuantity"].Index) //Desired Column
+			{
+				TextBox tb = e.Control as TextBox;
+				if (tb != null)
+				{
+					tb.KeyPress += new KeyPressEventHandler(NumericColumn_KeyPress);
+				}
+			}
+
+
+		}
+
+		private void DecimalColumn_KeyPress(object sender, KeyPressEventArgs e)
+		{
+			// allowed numeric and one dot  ex. 10.23
+			if (!char.IsControl(e.KeyChar) && !char.IsDigit(e.KeyChar)
+				 && e.KeyChar != '.')
+			{
+				e.Handled = true;
+			}
+
+			// only allow one decimal point
+			if (e.KeyChar == '.'
+				&& (sender as TextBox).Text.IndexOf('.') > -1)
+			{
+				e.Handled = true;
+			}
+		}
+
+
+		private void NumericColumn_KeyPress(object sender, KeyPressEventArgs e)
+		{
+			// allowed only numeric value  ex.10
+			if (!char.IsControl(e.KeyChar) && !char.IsDigit(e.KeyChar))
+			{
+			    e.Handled = true;
+			}
+		}
+
 	}
 }
