@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
+using System.Threading.Tasks;
 
 namespace ONWLibrary
 {
@@ -17,6 +18,7 @@ namespace ONWLibrary
 		private static CollectService CollectService { get { return new CollectService(_myStore, _access); } }
 		private static ProductImageService ProductImageService { get { return new ProductImageService(_myStore, _access); } }
 		private static ProductService ProductService { get { return new ShopifySharp.ProductService(_myStore, _access); } }
+		private static ProductVariantService ProductVariantService { get { return new ProductVariantService(_myStore, _access); } }
 		private static MetaFieldService MetaFieldService { get { return new MetaFieldService(_myStore, _access); } }
 		static public void Init()
 		{
@@ -58,19 +60,30 @@ namespace ONWLibrary
 			return cc;
 		}
 
-		static public IEnumerable<Product> GetProducts()
+		static async public Task<List<ProductVariant>> GetProductVariants()
+		{
+			List<ProductVariant> data = new List<ProductVariant>();
+			List<Product> products = await GetProducts();
+			foreach (Product p in products)
+			{
+				data.AddRange(p.Variants);
+			}
+			return data;
+		}
+
+		static async public Task<List<Product>> GetProducts()
 		{
 			List<Product> products = new List<Product>();
 			try
 			{
-				int count = ProductService.CountAsync().Result;
+				int count = await ProductService.CountAsync();
 				int pages = (count / 250) + 1;
 				for (int page = 1; page <= pages; page++)
 				{
 					ProductFilter filter = new ProductFilter();
 					filter.Limit = 250;
 					filter.Page = page;
-					products.AddRange(ProductService.ListAsync(filter).Result);
+					products.AddRange(await ProductService.ListAsync(filter));
 				}
 			}
 			catch (Exception e)

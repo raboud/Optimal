@@ -174,6 +174,8 @@ namespace xymogen_ripper
 		{
 			Shopify.Init();
 
+			Shopify.GetProducts();
+
 			MasterScraper scraper = new MasterScraper();
 			scraper.flatProducts();
 			//scraper.Supplement();
