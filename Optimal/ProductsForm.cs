@@ -59,5 +59,25 @@ namespace Optimal
 			ProductVariant pv2 = await Shopify.UpdateVariant(pv);
 		}
 
+		private void buttonSearch_Click(object sender, EventArgs e)
+		{
+			int start = this.dataGridView1.CurrentCell.RowIndex + 1;
+			int i = start;
+			do
+			{
+				FlatProduct flat = this.dataGridView1.Rows[i].DataBoundItem as FlatProduct;
+				if (flat.Name.Contains(this.textSearch.Text))
+				{
+					this.dataGridView1.CurrentCell = this.dataGridView1.Rows[i].Cells["Barcode"];
+					break;
+				}
+				else if (flat.Barcode == this.textSearch.Text)
+				{
+					this.dataGridView1.CurrentCell = this.dataGridView1.Rows[i].Cells["InventoryQuantity"];
+					break;
+				}
+				i = (i + 1) % this.dataGridView1.RowCount;
+			} while (i != start);
+		}
 	}
 }

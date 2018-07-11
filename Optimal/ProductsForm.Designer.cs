@@ -34,6 +34,8 @@ namespace Optimal
 		private void InitializeComponent()
 		{
 			this.dataGridView1 = new System.Windows.Forms.DataGridView();
+			this.textSearch = new System.Windows.Forms.TextBox();
+			this.buttonSearch = new System.Windows.Forms.Button();
 			((System.ComponentModel.ISupportInitialize)(this.dataGridView1)).BeginInit();
 			this.SuspendLayout();
 			// 
@@ -48,22 +50,44 @@ namespace Optimal
 			this.dataGridView1.Size = new System.Drawing.Size(776, 359);
 			this.dataGridView1.TabIndex = 0;
 			// 
+			// textSearch
+			// 
+			this.textSearch.Location = new System.Drawing.Point(89, 401);
+			this.textSearch.Name = "textSearch";
+			this.textSearch.Size = new System.Drawing.Size(258, 20);
+			this.textSearch.TabIndex = 1;
+			// 
+			// buttonSearch
+			// 
+			this.buttonSearch.Location = new System.Drawing.Point(432, 403);
+			this.buttonSearch.Name = "buttonSearch";
+			this.buttonSearch.Size = new System.Drawing.Size(75, 23);
+			this.buttonSearch.TabIndex = 2;
+			this.buttonSearch.Text = "Search";
+			this.buttonSearch.UseVisualStyleBackColor = true;
+			this.buttonSearch.Click += new System.EventHandler(this.buttonSearch_Click);
+			// 
 			// ProductsForm
 			// 
 			this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
 			this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
 			this.ClientSize = new System.Drawing.Size(800, 450);
+			this.Controls.Add(this.buttonSearch);
+			this.Controls.Add(this.textSearch);
 			this.Controls.Add(this.dataGridView1);
 			this.Name = "ProductsForm";
 			this.Text = "Products";
 			this.Load += new System.EventHandler(this.ProductsForm_Load);
 			((System.ComponentModel.ISupportInitialize)(this.dataGridView1)).EndInit();
 			this.ResumeLayout(false);
+			this.PerformLayout();
 
 		}
 
 		#endregion
 
 		private System.Windows.Forms.DataGridView dataGridView1;
+		private TextBox textSearch;
+		private Button buttonSearch;
 	}
 }
