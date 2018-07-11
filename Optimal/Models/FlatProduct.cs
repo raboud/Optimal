@@ -10,26 +10,30 @@ namespace Optimal.Models
 {
 	public class FlatProduct
 	{
-		public string Vendor { get; set; }
-		public string Name { get; set; }
-		[JsonProperty("barcode")]
-		public string Barcode { get; set; }
-		[JsonProperty("sku")]
-		public string SKU { get; set; }
-		[JsonProperty("product_id")]
-		public long? ProductId { get; set; }
-		[JsonProperty("id")]
-		public long? Id { get; set; }
-		[JsonProperty("option1")]
-		public string Option1 { get; set; }
-		[JsonProperty("option2")]
-		public string Option2 { get; set; }
-		[JsonProperty("option3")]
-		public string Option3 { get; set; }
-		[JsonProperty("price")]
-		public decimal? Price { get; set; }
-		[JsonProperty("inventory_quantity")]
-		public int? InventoryQuantity { get; set; }
+		public string Vendor { get { return this.Product.Vendor; } }
+		public string Name { get { return this.Product.Title; } }
+		public string Option1 { get { return this.ProductVariant.Option1; } }
+		public string Option2 { get { return this.ProductVariant.Option1; } }
+		public string Option3 { get { return this.ProductVariant.Option1; } }
+
+		public decimal? Price { get { return this.ProductVariant.Price; } set { this.ProductVariant.Price = value; } }
+		public string SKU { get { return this.ProductVariant.SKU; } set { this.ProductVariant.SKU = value; } }
+		public string Barcode { get { return this.ProductVariant.Barcode; } set { this.ProductVariant.Barcode = value; } }
+		public int? InventoryQuantity { get { return this.ProductVariant.InventoryQuantity; } set { this.ProductVariant.InventoryQuantity = value; } }
+
+		private Product Product { get; set; }
+		private ProductVariant ProductVariant { get; set; }
+
+		public FlatProduct(Product product, ProductVariant productVariant)
+		{
+			this.Product = product;
+			this.ProductVariant = productVariant;
+		}
+
+		public ProductVariant GetProductVariant()
+		{
+			return this.ProductVariant;
+		}
 
 		//[JsonProperty("weight")]
 		//public decimal? Weight { get; set; }
@@ -57,23 +61,7 @@ namespace Optimal.Models
 			{
 				foreach (ProductVariant pv in p.Variants)
 				{
-					FlatProduct flat = new FlatProduct()
-					{
-						Vendor = p.Vendor,
-						Name = p.Title,
-						SKU = pv.SKU,
-						Barcode = pv.Barcode,
-						Option1 = pv.Option1,
-						Option2 = pv.Option2,
-						Option3 = pv.Option3,
-						//						Grams = pv.Grams,
-						//						Weight = pv.Weight,
-						Price = pv.Price,
-						InventoryQuantity = pv.InventoryQuantity,
-
-						Id = pv.Id,
-						ProductId = pv.ProductId,
-					};
+					FlatProduct flat = new FlatProduct(p, pv);
 					flats.Add(flat);
 
 				}

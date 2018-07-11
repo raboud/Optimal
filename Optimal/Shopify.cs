@@ -60,6 +60,12 @@ namespace ONWLibrary
 			return cc;
 		}
 
+		static async public Task<ProductVariant> UpdateVariant(ProductVariant pv)
+		{
+			ProductVariant pv2 = await ProductVariantService.UpdateAsync(pv.Id.Value, pv);
+			return pv2;
+		}
+
 		static async public Task<List<ProductVariant>> GetProductVariants()
 		{
 			List<ProductVariant> data = new List<ProductVariant>();

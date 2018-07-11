@@ -47,34 +47,17 @@ namespace Optimal
 			this.BindingSource = new BindingSource(BindingListProducts, null);
 			this.dataGridView1.DataSource = this.BindingSource;
 
-			this.dataGridView1.Columns.Remove("Id");
-			this.dataGridView1.Columns.Remove("ProductId");
+			this.dataGridView1.CellValueChanged += DataGridView1_CellValueChanged;
 		}
 
-		//private void dataGridView1_ColumnHeaderMouseClick(object sender, DataGridViewCellMouseEventArgs e)
-		//{
-		//	if (this.dataGridView1.Columns[e.ColumnIndex].SortMode != DataGridViewColumnSortMode.NotSortable)
-		//	{
-		//		if (e.ColumnIndex == newSortColumn)
-		//		{
-		//			if (newColumnDirection == ListSortDirection.Ascending)
-		//				newColumnDirection = ListSortDirection.Descending;
-		//			else
-		//				newColumnDirection = ListSortDirection.Ascending;
-		//		}
+		private async void DataGridView1_CellValueChanged(object sender, DataGridViewCellEventArgs e)
+		{
+			FlatProduct flat = this.dataGridView1.Rows[e.RowIndex].DataBoundItem as FlatProduct;
+			ProductVariant pv = flat.GetProductVariant();
+			if (pv.Barcode == null) pv.Barcode = "";
+			if (pv.SKU == null) pv.SKU = "";
+			ProductVariant pv2 = await Shopify.UpdateVariant(pv);
+		}
 
-		//		newSortColumn = e.ColumnIndex;
-
-		//		switch (newColumnDirection)
-		//		{
-		//			case ListSortDirection.Ascending:
-		//				dataGridView1.Sort(dataGridView1.Columns[newSortColumn], ListSortDirection.Ascending);
-		//				break;
-		//			case ListSortDirection.Descending:
-		//				dataGridView1.Sort(dataGridView1.Columns[newSortColumn], ListSortDirection.Descending);
-		//				break;
-		//		}
-		//	}
-		//}
 	}
 }
