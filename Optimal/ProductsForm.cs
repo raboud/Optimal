@@ -73,7 +73,7 @@ namespace Optimal
 			do
 			{
 				FlatProduct flat = this.dataGridView1.Rows[i].DataBoundItem as FlatProduct;
-				if (flat.Name.Contains(this.textSearch.Text))
+				if (flat.Name.IndexOf(this.textSearch.Text, StringComparison.CurrentCultureIgnoreCase) >= 0)
 				{
 					this.dataGridView1.CurrentCell = this.dataGridView1.Rows[i].Cells["Barcode"];
 					this.dataGridView1.Select();
