@@ -21,7 +21,7 @@ namespace xymogen_ripper
 		public void Cleanup()
 		{
 			List<InvSupplement> inv = GetInventory();
-			IEnumerable<Product> products = Shopify.GetProducts();
+			IEnumerable<Product> products = Shopify.GetProducts().Result;
 			foreach (Product p in products )
 			{
 				p.Title = p.Title.Replace("®", "").Replace("™", "").Replace("®", "");
@@ -69,7 +69,7 @@ namespace xymogen_ripper
 
 		public void flatProducts()
 		{
-			IEnumerable<Product> prods = Shopify.GetProducts();
+			IEnumerable<Product> prods = Shopify.GetProducts().Result;
 			File.WriteAllText(dump, JsonConvert.SerializeObject(prods, Formatting.Indented,
 				new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore }));
 			int count = 1;

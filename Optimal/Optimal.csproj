@@ -44,8 +44,8 @@
     <Reference Include="Newtonsoft.Json, Version=11.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
       <HintPath>..\packages\Newtonsoft.Json.11.0.2\lib\net45\Newtonsoft.Json.dll</HintPath>
     </Reference>
-    <Reference Include="ShopifySharp, Version=4.16.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\ShopifySharp.4.16.0\lib\net45\ShopifySharp.dll</HintPath>
+    <Reference Include="ShopifySharp, Version=4.16.1.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\ShopifySharp.4.16.1\lib\net45\ShopifySharp.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.AppContext, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
@@ -136,6 +136,8 @@
       <DependentUpon>Form1.cs</DependentUpon>
     </Compile>
     <Compile Include="Models\FlatProduct.cs" />
+    <Compile Include="Models\ProductDTO.cs" />
+    <Compile Include="Models\ProductVariantDTO.cs" />
     <Compile Include="Models\SortableBindingList.cs" />
     <Compile Include="ProductForm.cs">
       <SubType>Form</SubType>
@@ -153,6 +155,9 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Shopify.cs" />
     <Compile Include="ShopifyRepository.cs" />
+    <EmbeddedResource Include="ProductForm.resx">
+      <DependentUpon>ProductForm.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="ProductsForm.resx">
       <DependentUpon>ProductsForm.cs</DependentUpon>
     </EmbeddedResource>
@@ -167,6 +172,7 @@
       <DesignTime>True</DesignTime>
     </Compile>
     <None Include="packages.config" />
+    <None Include="ProductForm.datasource" />
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>
       <LastGenOutput>Settings.Designer.cs</LastGenOutput>

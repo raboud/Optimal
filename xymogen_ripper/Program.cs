@@ -173,11 +173,50 @@ namespace xymogen_ripper
 		static void Main(string[] args)
 		{
 			Shopify.Init();
+			List<Customer> c = Shopify.GetCustomers();
+			List<Order> l = Shopify.GetOrders();
 
-			Shopify.GetProducts();
+			string start = JsonConvert.SerializeObject(l, Formatting.Indented,
+				new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore });
 
-			MasterScraper scraper = new MasterScraper();
-			scraper.flatProducts();
+			Customer c1 = c.FirstOrDefault(cu => cu.FirstName == "Darren" && cu.LastName == "Fink");
+			Order o1 = l.FirstOrDefault(o => o.Name == "ONW-1006");
+			Order o2 = l.FirstOrDefault(o => o.Name == "ONW-1007");
+			Order o3 = l.FirstOrDefault(o => o.Name == "ONW-1008");
+
+			if (o2 != null && o1 != null && o3 != null && c1 != null)
+			{
+				c1.OrdersCount++;
+				
+				o1.Note = "";
+				o1.Open();
+				o1.Customer = c1;
+				o1.Update();
+				o1.Close();
+
+				o2.Note = "";
+				o2.Open();
+				o2.Customer = c1;
+				o2.Update();
+				o2.Close();
+
+				o3.Note = "";
+				o3.Open();
+				o3.Customer = c1;
+				o3.Update();
+				o3.Close();
+
+				string end = JsonConvert.SerializeObject(l, Formatting.Indented,
+					new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore });
+				Order o4 = Shopify.Update(o1);
+				Order o5 = Shopify.Update(o2);
+				Order o6 = Shopify.Update(o3);
+				Customer c2 = Shopify.UpdateCustomer(c1);
+			}
+
+
+			//			MasterScraper scraper = new MasterScraper();
+			//			scraper.flatProducts();
 			//scraper.Supplement();
 			//scraper.Cleanup();
 			//scraper.Supplement2();

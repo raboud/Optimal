@@ -4,10 +4,11 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
+using System.Threading.Tasks;
 
 namespace ONWLibrary
 {
-	public class Shopify
+	public static class Shopify
 	{
 		private static string _myStore { get; set; } = "https://optimalnw.myshopify.com";
 		private static string _access { get; set; } = "3912f9da28ad92b17c79bf734b25246f";
@@ -18,59 +19,69 @@ namespace ONWLibrary
 		private static ProductImageService ProductImageService { get { return new ProductImageService(_myStore, _access); } }
 		private static ProductService ProductService { get { return new ShopifySharp.ProductService(_myStore, _access); } }
 		private static MetaFieldService MetaFieldService { get { return new MetaFieldService(_myStore, _access); } }
+		private static OrderService OrderService { get { return new OrderService(_myStore, _access); } }
+
 		static public void Init()
 		{
 			System.Net.ServicePointManager.SecurityProtocol |= SecurityProtocolType.Tls11 | SecurityProtocolType.Tls12;
 			ShopifyService.SetGlobalExecutionPolicy(new SmartRetryExecutionPolicy());
 		}
 
-		static public CustomCollection CreateCustomCollection(string collection)
+		static public Order Open(this Order o)
 		{
-			CustomCollectionService service = CustomCollectionService;
-
-			collection = collection.Trim();
-			IEnumerable<CustomCollection> customs = service.ListAsync().Result;
-
-			CustomCollection cc = customs.FirstOrDefault(c => c.Title == collection && c.PublishedScope != "global");
-			if (cc != null)
-			{
-				//				service.DeleteAsync(cc.Id.Value).Wait();
-			}
-
-
-			//			customs = service.ListAsync().Result;
-			if (customs.All(c => c.Title != collection))
-			{
-				string handle = collection.Replace(" ", "").Replace('&', '-');
-				cc = new CustomCollection()
-				{
-					Title = collection,
-					Handle = handle,
-					PublishedScope = "global",
-					BodyHtml = "",
-					Published = true,
-					PublishedAt = DateTime.UtcNow,
-					SortOrder = "alpha-asc"
-
-				};
-				cc = service.CreateAsync(cc).Result;
-			}
-			return cc;
+			return OrderService.OpenAsync(o.Id.Value).Result;
 		}
 
-		static public IEnumerable<Product> GetProducts()
+		static public Order Close(this Order o)
+		{
+			return OrderService.CloseAsync(o.Id.Value).Result;
+		}
+
+		static public List<Order> GetOrders()
+		{
+			List<Order> data = new List<Order>();
+			try
+			{
+				OrderFilter filter = new OrderFilter()
+				{
+					Status = "closed"
+				};
+
+				int count = OrderService.CountAsync(filter).Result;
+
+				int pages = (count / 250) + 1;
+				for (int page = 1; page <= pages; page++)
+				{
+					filter.Limit = 250;
+					filter.Page = page;
+					data.AddRange(OrderService.ListAsync(filter).Result);
+				}
+			}
+			catch (Exception e)
+			{
+
+			}
+			return data;
+		}
+
+		static public Order Update(this Order p)
+		{
+			return OrderService.UpdateAsync(p.Id.Value, p).Result;
+		}
+
+		static public async Task<List<Product>> GetProducts()
 		{
 			List<Product> products = new List<Product>();
 			try
 			{
-				int count = ProductService.CountAsync().Result;
+				int count = await ProductService.CountAsync();
 				int pages = (count / 250) + 1;
 				for (int page = 1; page <= pages; page++)
 				{
 					ProductFilter filter = new ProductFilter();
 					filter.Limit = 250;
 					filter.Page = page;
-					products.AddRange(ProductService.ListAsync(filter).Result);
+					products.AddRange(await ProductService.ListAsync(filter));
 				}
 			}
 			catch (Exception e)
@@ -90,7 +101,7 @@ namespace ONWLibrary
 			return ProductService.UpdateAsync(p.Id.Value, p).Result;
 		}
 
-		static public IEnumerable<Customer> GetCustomers()
+		static public List<Customer> GetCustomers()
 		{
 			List<Customer> customers = new List<Customer>();
 			int count = CustomerService.CountAsync().Result;
@@ -180,6 +191,58 @@ namespace ONWLibrary
 			}
 			return retVal;
 		}
+
+		static async public Task<List<CustomCollection>> GetCollections()
+		{
+			List<CustomCollection> list = new List<CustomCollection>();
+			int count = await CustomCollectionService.CountAsync();
+			int pages = (count / 250) + 1;
+			for (int page = 1; page <= pages; page++)
+			{
+				CustomCollectionFilter filter = new CustomCollectionFilter
+				{
+					Limit = 250,
+					Page = page
+				};
+				list.AddRange(await CustomCollectionService.ListAsync(filter));
+			}
+			return list;
+		}
+
+		static public CustomCollection CreateCustomCollection(string collection)
+		{
+			CustomCollectionService service = CustomCollectionService;
+
+			collection = collection.Trim();
+			IEnumerable<CustomCollection> customs = service.ListAsync().Result;
+
+			CustomCollection cc = customs.FirstOrDefault(c => c.Title == collection && c.PublishedScope != "global");
+			if (cc != null)
+			{
+				//				service.DeleteAsync(cc.Id.Value).Wait();
+			}
+
+
+			//			customs = service.ListAsync().Result;
+			if (customs.All(c => c.Title != collection))
+			{
+				string handle = collection.Replace(" ", "").Replace('&', '-');
+				cc = new CustomCollection()
+				{
+					Title = collection,
+					Handle = handle,
+					PublishedScope = "global",
+					BodyHtml = "",
+					Published = true,
+					PublishedAt = DateTime.UtcNow,
+					SortOrder = "alpha-asc"
+
+				};
+				cc = service.CreateAsync(cc).Result;
+			}
+			return cc;
+		}
+
 
 
 	}

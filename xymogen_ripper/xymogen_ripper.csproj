@@ -7,9 +7,9 @@
 
   <ItemGroup>
     <PackageReference Include="ARSoft.Tools.Net" Version="2.2.9" />
-    <PackageReference Include="HtmlAgilityPack" Version="1.8.4" />
+    <PackageReference Include="HtmlAgilityPack" Version="1.8.5" />
     <PackageReference Include="Newtonsoft.Json" Version="11.0.2" />
-    <PackageReference Include="ShopifySharp" Version="4.16.0" />
+    <PackageReference Include="ShopifySharp" Version="4.16.1" />
     <PackageReference Include="System.Drawing.Common" Version="4.5.0" />
   </ItemGroup>
 

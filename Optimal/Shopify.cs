@@ -18,6 +18,26 @@ namespace ONWLibrary
 		private static CollectService CollectService { get { return new CollectService(_myStore, _access); } }
 		private static ProductImageService ProductImageService { get { return new ProductImageService(_myStore, _access); } }
 		private static ProductService ProductService { get { return new ShopifySharp.ProductService(_myStore, _access); } }
+
+		internal static async Task<Product> GetProductAsync(long value)
+		{
+			Product product = null;
+			try
+			{
+				product = await ProductService.GetAsync(value);
+				product.Metafields = await MetaFieldService.ListAsync(value, "products");
+				foreach (ProductVariant pv in product.Variants)
+				{
+					pv.Metafields = await MetaFieldService.ListAsync(pv.Id.Value, "variants");
+				}
+			}
+			catch (Exception e)
+			{
+
+			}
+			return product;
+		}
+
 		private static ProductVariantService ProductVariantService { get { return new ProductVariantService(_myStore, _access); } }
 		private static MetaFieldService MetaFieldService { get { return new MetaFieldService(_myStore, _access); } }
 		static public void Init()
@@ -77,7 +97,7 @@ namespace ONWLibrary
 			return data;
 		}
 
-		static async public Task<List<Product>> GetProducts()
+		static async public Task<List<Product>> GetProducts(bool withMetafields = false)
 		{
 			List<Product> products = new List<Product>();
 			try
@@ -90,6 +110,13 @@ namespace ONWLibrary
 					filter.Limit = 250;
 					filter.Page = page;
 					products.AddRange(await ProductService.ListAsync(filter));
+				}
+				if (withMetafields)
+				{
+					foreach (Product prod in products)
+					{
+						prod.Metafields = await MetaFieldService.ListAsync(prod.Id.Value, "products");
+					}
 				}
 			}
 			catch (Exception e)

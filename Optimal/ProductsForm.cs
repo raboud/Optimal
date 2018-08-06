@@ -20,8 +20,6 @@ namespace Optimal
 		private SortableBindingList<FlatProduct> BindingListProducts;
 		private BindingSource BindingSource;
 
-		private int newSortColumn = -1;
-		ListSortDirection newColumnDirection = ListSortDirection.Ascending;
 
 		public ProductsForm()
 		{
@@ -41,13 +39,23 @@ namespace Optimal
 		private async void ProductsForm_Load(object sender, EventArgs e)
 		{
 			this.Products = (await Shopify.GetProducts()).ToList();
-			this.Flats = FlatProduct.FromProducts(this.Products);
+			this.Flats = FlatProduct.FromProducts(this.Products).Where(fp => fp.Price == null || fp.Price.Value == 0.0m).ToList();
 			int count = this.Products.Count(p => p.Variants?.Count() == 0);
 			this.BindingListProducts = new SortableBindingList<FlatProduct>(this.Flats);
 			this.BindingSource = new BindingSource(BindingListProducts, null);
 			this.dataGridView1.DataSource = this.BindingSource;
 
 			this.dataGridView1.CellValueChanged += DataGridView1_CellValueChanged;
+			this.dataGridView1.CellDoubleClick += DataGridView1_CellDoubleClick;
+		}
+
+		private void DataGridView1_CellDoubleClick(object sender, DataGridViewCellEventArgs e)
+		{
+			FlatProduct p = this.dataGridView1.Rows[e.RowIndex].DataBoundItem as FlatProduct;
+
+			ProductForm productForm = new ProductForm(p);
+			productForm.ShowDialog(this);
+
 		}
 
 		private async void DataGridView1_CellValueChanged(object sender, DataGridViewCellEventArgs e)

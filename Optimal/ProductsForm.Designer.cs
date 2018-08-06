@@ -48,7 +48,7 @@ namespace Optimal
 			this.dataGridView1.Location = new System.Drawing.Point(12, 12);
 			this.dataGridView1.MultiSelect = false;
 			this.dataGridView1.Name = "dataGridView1";
-			this.dataGridView1.Size = new System.Drawing.Size(896, 359);
+			this.dataGridView1.Size = new System.Drawing.Size(896, 397);
 			this.dataGridView1.TabIndex = 0;
 			this.dataGridView1.EditingControlShowing += new System.Windows.Forms.DataGridViewEditingControlShowingEventHandler(this.dataGridView1_EditingControlShowing);
 			// 
@@ -56,7 +56,7 @@ namespace Optimal
 			// 
 			this.textSearch.AcceptsReturn = true;
 			this.textSearch.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-			this.textSearch.Location = new System.Drawing.Point(89, 401);
+			this.textSearch.Location = new System.Drawing.Point(88, 418);
 			this.textSearch.Name = "textSearch";
 			this.textSearch.Size = new System.Drawing.Size(258, 20);
 			this.textSearch.TabIndex = 1;
@@ -65,7 +65,7 @@ namespace Optimal
 			// buttonSearch
 			// 
 			this.buttonSearch.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-			this.buttonSearch.Location = new System.Drawing.Point(432, 403);
+			this.buttonSearch.Location = new System.Drawing.Point(431, 415);
 			this.buttonSearch.Name = "buttonSearch";
 			this.buttonSearch.Size = new System.Drawing.Size(75, 23);
 			this.buttonSearch.TabIndex = 2;
