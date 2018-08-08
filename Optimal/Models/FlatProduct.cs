@@ -10,29 +10,29 @@ namespace Optimal.Models
 {
 	public class FlatProduct
 	{
-		public string Vendor { get { return this.Product.Vendor; } }
-		public string Name { get { return this.Product.Title; } }
-		public string Option1 { get { return this.ProductVariant.Option1; } }
-		public string Option2 { get { return this.ProductVariant.Option2; } }
-		public string Option3 { get { return this.ProductVariant.Option3; } }
+		public string Vendor { get { return Product.Vendor; } }
+		public string Name { get { return Product.Title; } }
+		public string Option1 { get { return ProductVariant.Option1; } }
+		public string Option2 { get { return ProductVariant.Option2; } }
+		public string Option3 { get { return ProductVariant.Option3; } }
 
-		public decimal? Price { get { return this.ProductVariant.Price; } set { this.ProductVariant.Price = value; } }
-		public string SKU { get { return this.ProductVariant.SKU; } set { this.ProductVariant.SKU = value; } }
-		public string Barcode { get { return this.ProductVariant.Barcode; } set { this.ProductVariant.Barcode = value; } }
-		public int? InventoryQuantity { get { return this.ProductVariant.InventoryQuantity; } set { this.ProductVariant.InventoryQuantity = value; } }
+		public decimal? Price { get { return ProductVariant.Price; } set { ProductVariant.Price = value; } }
+		public string SKU { get { return ProductVariant.SKU; } set { ProductVariant.SKU = value; } }
+		public string Barcode { get { return ProductVariant.Barcode; } set { ProductVariant.Barcode = value; } }
+		public int? InventoryQuantity { get { return ProductVariant.InventoryQuantity; } set { ProductVariant.InventoryQuantity = value; } }
 
 		private Product Product { get; set; }
 		private ProductVariant ProductVariant { get; set; }
 
 		public FlatProduct(Product product, ProductVariant productVariant)
 		{
-			this.Product = product;
-			this.ProductVariant = productVariant;
+			Product = product;
+			ProductVariant = productVariant;
 		}
 
 		public ProductVariant GetProductVariant()
 		{
-			return this.ProductVariant;
+			return ProductVariant;
 		}
 
 		//[JsonProperty("weight")]

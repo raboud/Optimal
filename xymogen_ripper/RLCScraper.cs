@@ -9,15 +9,16 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace xymogen_ripper
 {
 	public class RLCScraper : Scraper
 	{
-		string master = @"C:\Users\Robert\Documents\Supplements Master List.json";
-		string cleaned = @"C:\Users\Robert\Documents\Supplements Cleaned.json";
-		string supplement = @"C:\Users\Robert\Documents\rlc-supplements.json";
-		readonly string CacheFile = @"C:\Users\Robert\Documents\RLC.json";
+		private readonly string master = @"C:\Users\Robert\Documents\Supplements Master List.json";
+		private readonly string cleaned = @"C:\Users\Robert\Documents\Supplements Cleaned.json";
+		private readonly string supplement = @"C:\Users\Robert\Documents\rlc-supplements.json";
+		private readonly string CacheFile = @"C:\Users\Robert\Documents\RLC.json";
 
 		public void Supplement()
 		{
@@ -79,8 +80,10 @@ namespace xymogen_ripper
 
 							if (prod == null)
 							{
-								prod = new RLCProduct();
-								prod.Name = i.Name;
+								prod = new RLCProduct
+								{
+									Name = i.Name
+								};
 								prods.Add(prod);
 							}
 							//							else
@@ -89,10 +92,12 @@ namespace xymogen_ripper
 								if (!prod.Sizes.Contains(i.Size))
 								{
 									prod.Sizes.Add(i.Size);
-									v = new RLCProduct.Variant();
-									v.ImageUrl = i.ImageUrl;
-									v.Option1 = i.Size;
-									v.Price = i.Retail;
+									v = new RLCProduct.Variant
+									{
+										ImageUrl = i.ImageUrl,
+										Option1 = i.Size,
+										Price = i.Retail
+									};
 									v.SKU = Path.GetFileNameWithoutExtension(v.ImageUrl);
 									v.ImageUrl = i.ImageUrl;
 									prod.Variants.Add(v);
@@ -115,22 +120,22 @@ namespace xymogen_ripper
 
 		}
 
-		public void Supplement2()
+		public async Task Supplement2()
 		{
 			List<InvSupplement> inv2 = null;
 			if (File.Exists(supplement))
 			{
 				inv2 = JsonConvert.DeserializeObject<List<InvSupplement>>(File.ReadAllText(supplement));
 			}
-			var prods = GetProducts();
+			List<RLCProduct> prods = GetProducts();
 
-			foreach (var prod in prods)
+			foreach (RLCProduct prod in prods)
 			{
 				if (prod != null && !inv2.Where(i => i.Name == prod.Name && i.Active).Any(i => i.Imported))
 				{
 					System.Console.Write($"{prod.Name} ");
-					BuildProduct(prod);
-					foreach (var inv in inv2.Where(i => i.Name == prod.Name && i.Active))
+					await BuildProduct(prod);
+					foreach (InvSupplement inv in inv2.Where(i => i.Name == prod.Name && i.Active))
 					{
 						inv.Imported = true;
 					}
@@ -150,39 +155,45 @@ namespace xymogen_ripper
 		}
 
 
-		private void BuildProduct(RLCProduct p)
+		private async Task BuildProduct(RLCProduct p)
 		{
-			Product prod = new Product();
-			prod.Options = new List<ProductOption>();
-			prod.Variants = new List<ProductVariant>();
-			prod.Images = new List<ProductImage>();
+			Product prod = new Product
+			{
+				Options = new List<ProductOption>(),
+				Variants = new List<ProductVariant>(),
+				Images = new List<ProductImage>(),
 
-			prod.PublishedScope = "global";
-			prod.Title = p.Name;
-			prod.BodyHtml = p.Description;
-			prod.Vendor = "RLC Labs";
+				PublishedScope = "global",
+				Title = p.Name,
+				BodyHtml = p.Description,
+				Vendor = "RLC Labs"
+			};
 
-			ProductOption po = new ProductOption();
-			po.Name = "Size";
-			foreach (var vt in p.Sizes)
+			ProductOption po = new ProductOption
+			{
+				Name = "Size"
+			};
+			foreach (string vt in p.Sizes)
 			{
 				po.Values = new List<string>(p.Sizes);
 			}
 			po.ProductId = prod.Id;
 			(prod.Options as List<ProductOption>).Add(po);
 
-			foreach (var v in p.Variants)
+			foreach (RLCProduct.Variant v in p.Variants)
 			{
-				ProductVariant pv = new ProductVariant();
-				pv.Barcode = v.BarCode;
-				pv.Option1 = v.Option1;
-				pv.Option2 = v.Option2;
-				pv.Option3 = v.Option3;
-				pv.SKU = "RLC-" + v.ImageUrl;
-				pv.Taxable = true;
-				pv.InventoryManagement = "shopify";
-				pv.InventoryQuantity = 0;
-				pv.Price = v.Price;
+				ProductVariant pv = new ProductVariant
+				{
+					Barcode = v.BarCode,
+					Option1 = v.Option1,
+					Option2 = v.Option2,
+					Option3 = v.Option3,
+					SKU = "RLC-" + v.ImageUrl,
+					Taxable = true,
+					InventoryManagement = "shopify",
+					InventoryQuantity = 0,
+					Price = v.Price
+				};
 
 				(prod.Variants as List<ProductVariant>).Add(pv);
 
@@ -196,18 +207,20 @@ namespace xymogen_ripper
 				}
 			}
 
-			prod = Shopify.CreateProduct(prod);
+			prod = await Shopify.CreateProductAsync(prod);
 			foreach (ProductVariant pv in prod.Variants)
 			{
 				ProductImage pi = prod.Images.FirstOrDefault(pii => pii.Src.Contains($"/{pv.SKU}.png"));
 				if (pi != null)
 				{
-					List<long> ids = new List<long>();
-					ids.Add(pv.Id.Value);
+					List<long> ids = new List<long>
+					{
+						pv.Id.Value
+					};
 					pi.VariantIds = ids;
 				}
 			}
-			prod = Shopify.UpdateProduct(prod);
+			prod = await Shopify.UpdateProductAsync(prod);
 
 			Shopify.CreateProductMetadata(prod.Id.Value, "ownProduct", "ShortDescription", p.BriefDescription);
 			Shopify.CreateProductMetadata(prod.Id.Value, "ownProduct", "Benefits", p.Benefits);
@@ -297,16 +310,16 @@ namespace xymogen_ripper
 
 			public RLCProduct()
 			{
-				this.Categories = new List<string>();
-				this.Variants = new List<Variant>();
-				this.Sizes = new List<string>();
+				Categories = new List<string>();
+				Variants = new List<Variant>();
+				Sizes = new List<string>();
 			}
 
 			public class Option
 			{
 				public Option()
 				{
-					this.values = new List<string>();
+					values = new List<string>();
 				}
 				public string variantTypeName { get; set; }
 				public List<string> values { get; set; }

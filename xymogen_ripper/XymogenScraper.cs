@@ -8,6 +8,7 @@ using System.Drawing;
 using Newtonsoft.Json;
 using ShopifySharp;
 using ONWLibrary;
+using System.Threading.Tasks;
 
 namespace xymogen_ripper
 {
@@ -16,16 +17,16 @@ namespace xymogen_ripper
 		public static readonly int startingId = 1;
 		public static readonly int endingId = 999;
 
-		private List<int> idsFound = new List<int>();
+		private readonly List<int> idsFound = new List<int>();
 		public XymogenScraper()
 		{
 		}
-		private static void BuildProduct(int id)
+		private static async Task BuildProduct(int id)
 		{
 			XymogenScraper.XymogenProduct p = XymogenScraper.GetCacheProductInfo(id);
-			BuildProduct(p);
+			await BuildProduct(p);
 		}
-		private static void Supplement2()
+		private static async Task Supplement2()
 		{
 			List<InvSupplement> inv2 = JsonConvert.DeserializeObject<List<InvSupplement>>(File.ReadAllText(@"C:\Users\Robert\Documents\supplements.json"));
 			List<InvSupplement> inv = inv2.Where(i => i.Company == "Xymogen" && i.Active && !i.Imported && i.XymogenId != 0).ToList();
@@ -68,7 +69,7 @@ namespace xymogen_ripper
 					foreach (InvSupplement i in inv2.Where(iv => vp.Value.Contains(iv.XymogenId)))
 					{
 						i.Imported = true;
-						var v = prod.Variants.FirstOrDefault(pv => pv.ProductID == i.XymogenId);
+						XymogenProduct.Variant v = prod.Variants.FirstOrDefault(pv => pv.ProductID == i.XymogenId);
 						if (v != null)
 						{
 							if (i.Retail == 0.00m)
@@ -83,7 +84,7 @@ namespace xymogen_ripper
 						}
 					}
 					System.Console.Write($"{prod.Name} ");
-					BuildProduct(prod);
+					await BuildProduct(prod);
 					File.WriteAllText(@"C:\Users\Robert\Documents\supplements.json", JsonConvert.SerializeObject(inv2, Formatting.Indented,
 						new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore }));
 					System.Console.WriteLine($"completed");
@@ -185,24 +186,28 @@ namespace xymogen_ripper
 		}
 
 
-		private static void BuildProduct(XymogenScraper.XymogenProduct p)
+		private static async Task BuildProduct(XymogenScraper.XymogenProduct p)
 		{
-			Product prod = new Product();
-			prod.Options = new List<ProductOption>();
-			prod.Variants = new List<ProductVariant>();
-			prod.Images = new List<ProductImage>();
-
-			prod.PublishedScope = "global";
-			prod.Title = p.Name;
-			prod.BodyHtml = p.Description;
-			prod.Vendor = "Xymogen";
-
-			foreach (var vt in p.Options)
+			Product prod = new Product
 			{
-				ProductOption po = new ProductOption();
-				po.Values = new List<string>();
-				po.Name = vt.variantTypeName;
-				po.ProductId = prod.Id;
+				Options = new List<ProductOption>(),
+				Variants = new List<ProductVariant>(),
+				Images = new List<ProductImage>(),
+
+				PublishedScope = "global",
+				Title = p.Name,
+				BodyHtml = p.Description,
+				Vendor = "Xymogen"
+			};
+
+			foreach (XymogenProduct.Option vt in p.Options)
+			{
+				ProductOption po = new ProductOption
+				{
+					Values = new List<string>(),
+					Name = vt.variantTypeName,
+					ProductId = prod.Id
+				};
 				foreach (XymogenScraper.XymogenProduct.Value vv in vt.values)
 				{
 					(po.Values as List<string>).Add(vv.variantTypeValueName);
@@ -210,38 +215,44 @@ namespace xymogen_ripper
 				(prod.Options as List<ProductOption>).Add(po);
 			}
 
-			foreach (var v in p.Variants)
+			foreach (XymogenProduct.Variant v in p.Variants)
 			{
-				ProductVariant pv = new ProductVariant();
-				pv.Barcode = v.BarCode;
-				pv.Option1 = v.Option1;
-				pv.Option2 = v.Option2;
-				pv.Option3 = v.Option3;
-				pv.SKU = v.SKU;
-				pv.Taxable = true;
-				pv.InventoryManagement = "shopify";
-				pv.InventoryQuantity = 0;
-				pv.Price = v.Price;
+				ProductVariant pv = new ProductVariant
+				{
+					Barcode = v.BarCode,
+					Option1 = v.Option1,
+					Option2 = v.Option2,
+					Option3 = v.Option3,
+					SKU = v.SKU,
+					Taxable = true,
+					InventoryManagement = "shopify",
+					InventoryQuantity = 0,
+					Price = v.Price
+				};
 
 				(prod.Variants as List<ProductVariant>).Add(pv);
 
 
-				ProductImage image = new ProductImage();
-				image.Attachment = Convert.ToBase64String(File.ReadAllBytes($"f:\\temp\\Images\\{v.ProductID}.png"));
-				image.Filename = $"{v.ProductID}.png";
+				ProductImage image = new ProductImage
+				{
+					Attachment = Convert.ToBase64String(File.ReadAllBytes($"f:\\temp\\Images\\{v.ProductID}.png")),
+					Filename = $"{v.ProductID}.png"
+				};
 				(prod.Images as List<ProductImage>).Add(image);
 			}
 
-			prod = Shopify.CreateProduct(prod);
+			prod = await Shopify.CreateProductAsync(prod);
 			foreach (ProductVariant pv in prod.Variants)
 			{
 				string vid = pv.SKU.Split('-')[1];
 				ProductImage pi = prod.Images.FirstOrDefault(pii => pii.Src.Contains($"/{vid}.png"));
-				List<long> ids = new List<long>();
-				ids.Add(pv.Id.Value);
+				List<long> ids = new List<long>
+				{
+					pv.Id.Value
+				};
 				pi.VariantIds = ids;
 			}
-			prod = Shopify.UpdateProduct(prod);
+			prod = await Shopify.UpdateProductAsync(prod);
 
 			Shopify.CreateProductMetadata(prod.Id.Value, "ownProduct", "ShortDescription", p.BriefDescription);
 			Shopify.CreateProductMetadata(prod.Id.Value, "ownProduct", "Benefits", p.Benefits);
@@ -277,7 +288,8 @@ namespace xymogen_ripper
 			}
 			return prods;
 		}
-		static string path = "Xymogen.json";
+
+		private readonly static string path = "Xymogen.json";
 
 		public static void GetProductInfo()
 		{
@@ -296,7 +308,7 @@ namespace xymogen_ripper
 					System.Console.Write($"{id}\r");
 					if (!prods.Any(p => p.Value.Variants.Any(v => v.ProductID == id)))
 					{
-						XymogenProduct prod = scraper.processPage(id);
+						XymogenProduct prod = scraper.ProcessPage(id);
 						if (prod != null)
 						{
 							if (!prods.ContainsKey(prod.MasterId))
@@ -387,9 +399,9 @@ namespace xymogen_ripper
 			}
 		}
 
-		public XymogenProduct processPage(int id, WebClient wc = null)
+		public XymogenProduct ProcessPage(int id, WebClient wc = null)
 		{
-			var url = $"https://www.xymogen.com/formulas/products/{id}";
+			string url = $"https://www.xymogen.com/formulas/products/{id}";
 			WebClient client = wc;
 
 			if (client == null)
@@ -415,7 +427,7 @@ namespace xymogen_ripper
 			doc.LoadHtml(rawHtml);
 			sanitizeNode(doc.DocumentNode);
 
-			var n2 = doc.DocumentNode.SelectNodes("//div[@id='udpProductDetails']/div/div");
+			HtmlNodeCollection n2 = doc.DocumentNode.SelectNodes("//div[@id='udpProductDetails']/div/div");
 			if (n2 != null)
 			{
 				foreach (HtmlNode node in n2)
@@ -424,7 +436,7 @@ namespace xymogen_ripper
 					if (p.Id == id)
 					{
 						p.MasterId = findMasterId(id);
-						getOptions(p);
+						GetOptions(p);
 						return p;
 					}
 				}
@@ -434,14 +446,14 @@ namespace xymogen_ripper
 
 		}
 
-		private void getOptions(XymogenProduct p)
+		private void GetOptions(XymogenProduct p)
 		{
 			using (WebClient wc = new WebClient())
 			{
 				wc.Headers[HttpRequestHeader.ContentType] = "application/json";
 				string response = wc.UploadString("https://www.xymogen.com/usercontrols/utilities/ProductVariants.asmx/LoadProductVariantOptions", $"{{MasterId: {p.MasterId}, variantSelections: null, ProductID: 0, Favorites: false}}");
 
-				var o = JsonConvert.DeserializeObject<Wrapper>(response);
+				Wrapper o = JsonConvert.DeserializeObject<Wrapper>(response);
 
 				string[] parts = o.d.Substring(1, o.d.Length - 2).Split("],");
 				p.Options = JsonConvert.DeserializeObject<List<XymogenProduct.Option>>(parts[0].Trim() + "]");
@@ -465,8 +477,16 @@ namespace xymogen_ripper
 						parts = o.d.Substring(1, o.d.Length - 2).Split("],");
 						XymogenProduct.Variant ppp = JsonConvert.DeserializeObject<List<XymogenProduct.Variant>>(parts.Last())[0];
 						ppp.Option1 = variant.values[0];
-						if (variant.values.Count > 1) ppp.Option2 = variant.values[1];
-						if (variant.values.Count > 2) ppp.Option3 = variant.values[2];
+						if (variant.values.Count > 1)
+						{
+							ppp.Option2 = variant.values[1];
+						}
+
+						if (variant.values.Count > 2)
+						{
+							ppp.Option3 = variant.values[2];
+						}
+
 						ppp.SKU = $"XMOGEN-{ppp.ProductID}";
 						ppp.BarCode = GetUPCCodes(ppp.ProductID);
 						p.Variants.Add(ppp);
@@ -504,8 +524,8 @@ namespace xymogen_ripper
 		{
 			public combos()
 			{
-				this.ids = new List<string>();
-				this.values = new List<string>();
+				ids = new List<string>();
+				values = new List<string>();
 			}
 			public List<string> ids;
 			public List<string> values;
@@ -521,7 +541,7 @@ namespace xymogen_ripper
 			}
 			List<combos> lower = buildVariants(types, level + 1);
 
-			foreach (var t in types[level].values)
+			foreach (XymogenProduct.Value t in types[level].values)
 			{
 				string thisLevel = t.variantTypeValueId.ToString();
 				if (lower != null)
@@ -551,9 +571,9 @@ namespace xymogen_ripper
 		private int findMasterId(int id)
 		{
 			int index = 0;
-			while (-1 != (index = this.rawHtml.IndexOf("displayVariants(", index)))
+			while (-1 != (index = rawHtml.IndexOf("displayVariants(", index)))
 			{
-				string[] split = this.rawHtml.Substring(index).Split(new char[] { '(', ',', ')' }, 5);
+				string[] split = rawHtml.Substring(index).Split(new char[] { '(', ',', ')' }, 5);
 				if (split[2] == id.ToString())
 				{
 					return int.Parse(split[1]);
@@ -634,8 +654,8 @@ namespace xymogen_ripper
 
 			public XymogenProduct()
 			{
-				this.Categories = new List<string>();
-				this.Variants = new List<Variant>();
+				Categories = new List<string>();
+				Variants = new List<Variant>();
 			}
 
 			public class Option

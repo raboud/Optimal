@@ -24,8 +24,10 @@ namespace ONWLibrary
 
 			IBarcodeReader reader = new BarcodeReader();
 			reader.Options.TryHarder = true;
-			reader.Options.PossibleFormats = new List<BarcodeFormat>();
-			reader.Options.PossibleFormats.Add(BarcodeFormat.UPC_A);
+			reader.Options.PossibleFormats = new List<BarcodeFormat>
+			{
+				BarcodeFormat.UPC_A
+			};
 			int dpi = (int)bm.HorizontalResolution;
 			int originalDpi = dpi;
 			try
@@ -62,12 +64,12 @@ namespace ONWLibrary
 		public string FileName { get; set; }
 		~PDFDocument()
 		{
-			this.Close();
+			Close();
 		}
 
 		public string UPCDecode()
 		{
-			return this.GetImage(0).UPCDecode();
+			return GetImage(0).UPCDecode();
 		}
 	
 
@@ -95,9 +97,9 @@ namespace ONWLibrary
 
 		public void Open(string fileName)
 		{
-			this.reader = new PdfReader(fileName);
-			this.parser = new PdfReaderContentParser(reader);
-			this.listener = new MyImageRenderListener();
+			reader = new PdfReader(fileName);
+			parser = new PdfReaderContentParser(reader);
+			listener = new MyImageRenderListener();
 
 		}
 
@@ -143,22 +145,22 @@ namespace ONWLibrary
 						if (PdfName.IMAGE.Equals(subtype))
 						{
 							int xrefIdx = ((PRIndirectReference)obj).Number;
-							PdfObject pdfObj = this.reader.GetPdfObject(xrefIdx);
+							PdfObject pdfObj = reader.GetPdfObject(xrefIdx);
 							PRStream str = (PRStream)(pdfObj);
 
 							PdfArray decode = tg.GetAsArray(PdfName.DECODE);
 							int width = tg.GetAsNumber(PdfName.WIDTH).IntValue;
 							int height = tg.GetAsNumber(PdfName.HEIGHT).IntValue;
 							int bpc = tg.GetAsNumber(PdfName.BITSPERCOMPONENT).IntValue;
-							var filter = tg.Get(PdfName.FILTER);
+							PdfObject filter = tg.Get(PdfName.FILTER);
 
 							if (filter.Equals(PdfName.FLATEDECODE))
 							{
-								var imageBytes = PdfReader.GetStreamBytesRaw(str);
+								byte[] imageBytes = PdfReader.GetStreamBytesRaw(str);
 
-								var decodedBytes = PdfReader.FlateDecode(imageBytes); //decode the raw image
-								var streamBytes = PdfReader.DecodePredictor(decodedBytes, str.GetAsDict(PdfName.DECODEPARMS)); //decode predict to filter the bytes
-								var pixelFormat = PixelFormat.Format1bppIndexed;
+								byte[] decodedBytes = PdfReader.FlateDecode(imageBytes); //decode the raw image
+								byte[] streamBytes = PdfReader.DecodePredictor(decodedBytes, str.GetAsDict(PdfName.DECODEPARMS)); //decode predict to filter the bytes
+								PixelFormat pixelFormat = PixelFormat.Format1bppIndexed;
 								switch (bpc) //determine the BPC
 								{
 									case 1:
@@ -174,8 +176,8 @@ namespace ONWLibrary
 
 								bm = new Bitmap(width, height, pixelFormat);
 								{
-									var bmpData = bm.LockBits(new System.Drawing.Rectangle(0, 0, width, height), ImageLockMode.WriteOnly, pixelFormat);
-									var length = (int)Math.Ceiling(width * bpc / 8.0);
+									BitmapData bmpData = bm.LockBits(new System.Drawing.Rectangle(0, 0, width, height), ImageLockMode.WriteOnly, pixelFormat);
+									int length = (int)Math.Ceiling(width * bpc / 8.0);
 									for (int i = 0; i < height; i++)
 									{
 										int offset = i * length;
@@ -264,7 +266,7 @@ namespace ONWLibrary
 
 		public void Add(System.Drawing.Bitmap bm)
 		{
-			this.Add(bm, RotateFlipType.RotateNoneFlipNone);
+			Add(bm, RotateFlipType.RotateNoneFlipNone);
 		}
 
 		FileStream stream;
@@ -273,12 +275,12 @@ namespace ONWLibrary
 
 		public void Add(System.Drawing.Bitmap bm, System.Drawing.RotateFlipType rotate)
 		{
-			if (this.stream == null)
+			if (stream == null)
 			{
-				this.stream = new FileStream(this.FileName, FileMode.Create);
-				this.pdfDocument = new iTextSharp.text.Document(PageSize.LETTER, PAGE_LEFT_MARGIN, PAGE_RIGHT_MARGIN, PAGE_TOP_MARGIN, PAGE_BOTTOM_MARGIN);
-				this.writer = iTextSharp.text.pdf.PdfWriter.GetInstance(pdfDocument, stream);
-				this.pdfDocument.Open();
+				stream = new FileStream(FileName, FileMode.Create);
+				pdfDocument = new iTextSharp.text.Document(PageSize.LETTER, PAGE_LEFT_MARGIN, PAGE_RIGHT_MARGIN, PAGE_TOP_MARGIN, PAGE_BOTTOM_MARGIN);
+				writer = iTextSharp.text.pdf.PdfWriter.GetInstance(pdfDocument, stream);
+				pdfDocument.Open();
 			}
 
 			Bitmap image = bm;
@@ -289,13 +291,13 @@ namespace ONWLibrary
 			}
 
 			{
-				iTextSharp.text.Image img = getImage(image);
+				iTextSharp.text.Image img = GetImage(image);
 				img.ScaleToFit(PageSize.LETTER.Width - (PAGE_LEFT_MARGIN + PAGE_RIGHT_MARGIN), PageSize.LETTER.Height - (PAGE_TOP_MARGIN + PAGE_BOTTOM_MARGIN));
 				pdfDocument.Add(img);
 			}
 		}
 
-		iTextSharp.text.Image getImage(Bitmap image)
+		private iTextSharp.text.Image GetImage(Bitmap image)
 		{
 			if (image.PixelFormat == System.Drawing.Imaging.PixelFormat.Format1bppIndexed)
 			{
@@ -333,22 +335,22 @@ namespace ONWLibrary
 		}
 		public void Close()
 		{
-			if (this.pdfDocument != null)
+			if (pdfDocument != null)
 			{
-				this.pdfDocument.Close();
-				this.pdfDocument.Dispose();
-				this.writer.Close();
-				this.writer.Dispose();
-				this.stream.Close();
-				this.stream.Dispose();
-				this.pdfDocument = null;
-				this.writer = null;
-				this.pdfDocument = null;
+				pdfDocument.Close();
+				pdfDocument.Dispose();
+				writer.Close();
+				writer.Dispose();
+				stream.Close();
+				stream.Dispose();
+				pdfDocument = null;
+				writer = null;
+				pdfDocument = null;
 			}
 
-			if (this.reader != null)
+			if (reader != null)
 			{
-				this.reader.Close();
+				reader.Close();
 			}
 
 		}
@@ -415,7 +417,10 @@ namespace ONWLibrary
 			try
 			{
 				PdfImageObject image = renderInfo.GetImage();
-				if (image == null) return;
+				if (image == null)
+				{
+					return;
+				}
 
 				using (MemoryStream ms = new MemoryStream(image.GetImageAsBytes()))
 				{

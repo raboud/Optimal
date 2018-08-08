@@ -24,34 +24,30 @@ namespace Optimal
 		public ProductsForm()
 		{
 			Shopify.Init();
-			//this.Products = Shopify.GetProducts().ToList();
-			//this.BindingListProducts = new BindingList<Product>(this.Products);
-			//this.BindingSource = new BindingSource(BindingListProducts, null);
-
 			InitializeComponent();
 		}
 
-		public void initGrid()
+		public void InitGrid()
 		{
-			this.dataGridView1.DataSource = this.BindingSource;
+			dataGridView1.DataSource = BindingSource;
 		}
 
 		private async void ProductsForm_Load(object sender, EventArgs e)
 		{
-			this.Products = (await Shopify.GetProducts()).ToList();
-			this.Flats = FlatProduct.FromProducts(this.Products).Where(fp => fp.Price == null || fp.Price.Value == 0.0m).ToList();
-			int count = this.Products.Count(p => p.Variants?.Count() == 0);
-			this.BindingListProducts = new SortableBindingList<FlatProduct>(this.Flats);
-			this.BindingSource = new BindingSource(BindingListProducts, null);
-			this.dataGridView1.DataSource = this.BindingSource;
+			Products = (await Shopify.GetProducts()).ToList();
+			Flats = FlatProduct.FromProducts(Products).Where(fp => fp.Price == null || fp.Price.Value == 0.0m).ToList();
+			int count = Products.Count(p => p.Variants?.Count() == 0);
+			BindingListProducts = new SortableBindingList<FlatProduct>(Flats);
+			BindingSource = new BindingSource(BindingListProducts, null);
+			dataGridView1.DataSource = BindingSource;
 
-			this.dataGridView1.CellValueChanged += DataGridView1_CellValueChanged;
-			this.dataGridView1.CellDoubleClick += DataGridView1_CellDoubleClick;
+			dataGridView1.CellValueChanged += DataGridView1_CellValueChanged;
+			dataGridView1.CellDoubleClick += DataGridView1_CellDoubleClick;
 		}
 
 		private void DataGridView1_CellDoubleClick(object sender, DataGridViewCellEventArgs e)
 		{
-			FlatProduct p = this.dataGridView1.Rows[e.RowIndex].DataBoundItem as FlatProduct;
+			FlatProduct p = dataGridView1.Rows[e.RowIndex].DataBoundItem as FlatProduct;
 
 			ProductForm productForm = new ProductForm(p);
 			productForm.ShowDialog(this);
@@ -60,68 +56,73 @@ namespace Optimal
 
 		private async void DataGridView1_CellValueChanged(object sender, DataGridViewCellEventArgs e)
 		{
-			FlatProduct flat = this.dataGridView1.Rows[e.RowIndex].DataBoundItem as FlatProduct;
+			FlatProduct flat = dataGridView1.Rows[e.RowIndex].DataBoundItem as FlatProduct;
 			ProductVariant pv = flat.GetProductVariant();
-			if (pv.Barcode == null) pv.Barcode = "";
-			if (pv.SKU == null) pv.SKU = "";
+			if (pv.Barcode == null)
+			{
+				pv.Barcode = "";
+			}
+
+			if (pv.SKU == null)
+			{
+				pv.SKU = "";
+			}
+
 			ProductVariant pv2 = await Shopify.UpdateVariant(pv);
-			this.textSearch.Select();
-			this.textSearch.SelectAll();
+			textSearch.Select();
+			textSearch.SelectAll();
 		}
 
-		private void buttonSearch_Click(object sender, EventArgs e)
+		private void ButtonSearch_Click(object sender, EventArgs e)
 		{
-			this.search();
+			Search();
 		}
 
-		private void search()
+		private void Search()
 		{
-			int start = (this.dataGridView1.CurrentCell.RowIndex + 1) % this.dataGridView1.RowCount;
+			int start = (dataGridView1.CurrentCell.RowIndex + 1) % dataGridView1.RowCount;
 			int i = start;
 			do
 			{
-				FlatProduct flat = this.dataGridView1.Rows[i].DataBoundItem as FlatProduct;
-				if (flat.Name.IndexOf(this.textSearch.Text, StringComparison.CurrentCultureIgnoreCase) >= 0)
+				FlatProduct flat = dataGridView1.Rows[i].DataBoundItem as FlatProduct;
+				if (flat.Name.IndexOf(textSearch.Text, StringComparison.CurrentCultureIgnoreCase) >= 0)
 				{
-					this.dataGridView1.CurrentCell = this.dataGridView1.Rows[i].Cells["Barcode"];
-					this.dataGridView1.Select();
+					dataGridView1.CurrentCell = dataGridView1.Rows[i].Cells["Barcode"];
+					dataGridView1.Select();
 					break;
 				}
-				else if (flat.Barcode == this.textSearch.Text)
+				else if (flat.Barcode == textSearch.Text)
 				{
-					this.dataGridView1.CurrentCell = this.dataGridView1.Rows[i].Cells["InventoryQuantity"];
-					this.dataGridView1.Select();
+					dataGridView1.CurrentCell = dataGridView1.Rows[i].Cells["InventoryQuantity"];
+					dataGridView1.Select();
 					break;
 				}
-				i = (i + 1) % this.dataGridView1.RowCount;
+				i = (i + 1) % dataGridView1.RowCount;
 			} while (i != start);
 		}
 
-		private void dataGridView1_EditingControlShowing(object sender, DataGridViewEditingControlShowingEventArgs e)
+		private void DataGridView1_EditingControlShowing(object sender, DataGridViewEditingControlShowingEventArgs e)
 		{
 			e.Control.KeyPress -= new KeyPressEventHandler(DecimalColumn_KeyPress);
 			e.Control.KeyPress -= new KeyPressEventHandler(NumericColumn_KeyPress);
 
 			if (dataGridView1.CurrentCell.ColumnIndex == dataGridView1.Columns["Price"].Index) //Desired Column
 			{
-				TextBox tb = e.Control as TextBox;
-				if (tb != null)
+				if (e.Control is TextBox tb)
 				{
 					tb.KeyPress += new KeyPressEventHandler(DecimalColumn_KeyPress);
 				}
 			}
 			if (dataGridView1.CurrentCell.ColumnIndex == dataGridView1.Columns["Barcode"].Index) //Desired Column
 			{
-				TextBox tb = e.Control as TextBox;
-				if (tb != null)
+				if (e.Control is TextBox tb)
 				{
 					tb.KeyPress += new KeyPressEventHandler(NumericColumn_KeyPress);
 				}
 			}
 			if (dataGridView1.CurrentCell.ColumnIndex == dataGridView1.Columns["InventoryQuantity"].Index) //Desired Column
 			{
-				TextBox tb = e.Control as TextBox;
-				if (tb != null)
+				if (e.Control is TextBox tb)
 				{
 					tb.KeyPress += new KeyPressEventHandler(NumericColumn_KeyPress);
 				}
@@ -157,16 +158,16 @@ namespace Optimal
 			}
 		}
 
-		private void textSearch_KeyPress(object sender, KeyPressEventArgs e)
+		private void TextSearch_KeyPress(object sender, KeyPressEventArgs e)
 		{
 			System.Diagnostics.Debug.Write(e.KeyChar);
 			if (e.KeyChar == '\r')
 			{
-				this.search();
+				Search();
 			}
 			if (e.KeyChar == '\n')
 			{
-				this.search();
+				Search();
 			}
 		}
 	}

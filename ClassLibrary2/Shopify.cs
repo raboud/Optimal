@@ -27,17 +27,17 @@ namespace ONWLibrary
 			ShopifyService.SetGlobalExecutionPolicy(new SmartRetryExecutionPolicy());
 		}
 
-		static public Order Open(this Order o)
+		static public async Task<Order> OpenAsync(this Order o)
 		{
-			return OrderService.OpenAsync(o.Id.Value).Result;
+			return await OrderService.OpenAsync(o.Id.Value);
 		}
 
-		static public Order Close(this Order o)
+		static public async Task<Order> CloseAsync(this Order o)
 		{
-			return OrderService.CloseAsync(o.Id.Value).Result;
+			return await OrderService.CloseAsync(o.Id.Value);
 		}
 
-		static public List<Order> GetOrders()
+		static public async Task<List<Order>> GetOrdersAsync()
 		{
 			List<Order> data = new List<Order>();
 			try
@@ -47,14 +47,14 @@ namespace ONWLibrary
 					Status = "closed"
 				};
 
-				int count = OrderService.CountAsync(filter).Result;
+				int count = await OrderService.CountAsync(filter);
 
 				int pages = (count / 250) + 1;
 				for (int page = 1; page <= pages; page++)
 				{
 					filter.Limit = 250;
 					filter.Page = page;
-					data.AddRange(OrderService.ListAsync(filter).Result);
+					data.AddRange(await OrderService.ListAsync(filter));
 				}
 			}
 			catch (Exception e)
@@ -64,12 +64,12 @@ namespace ONWLibrary
 			return data;
 		}
 
-		static public Order Update(this Order p)
+		static public async Task<Order> UpdateAsync(this Order p)
 		{
-			return OrderService.UpdateAsync(p.Id.Value, p).Result;
+			return await OrderService.UpdateAsync(p.Id.Value, p);
 		}
 
-		static public async Task<List<Product>> GetProducts()
+		static public async Task<List<Product>> GetProductsAsync()
 		{
 			List<Product> products = new List<Product>();
 			try
@@ -78,9 +78,11 @@ namespace ONWLibrary
 				int pages = (count / 250) + 1;
 				for (int page = 1; page <= pages; page++)
 				{
-					ProductFilter filter = new ProductFilter();
-					filter.Limit = 250;
-					filter.Page = page;
+					ProductFilter filter = new ProductFilter
+					{
+						Limit = 250,
+						Page = page
+					};
 					products.AddRange(await ProductService.ListAsync(filter));
 				}
 			}
@@ -91,14 +93,14 @@ namespace ONWLibrary
 			return products;
 		}
 
-		static public Product CreateProduct(Product p)
+		static public async Task<Product> CreateProductAsync(Product p)
 		{
-			return ProductService.CreateAsync(p).Result;
+			return await ProductService.CreateAsync(p);
 		}
 
-		static public Product UpdateProduct(Product p)
+		static public async Task<Product> UpdateProductAsync(Product p)
 		{
-			return ProductService.UpdateAsync(p.Id.Value, p).Result;
+			return await ProductService.UpdateAsync(p.Id.Value, p);
 		}
 
 		static public List<Customer> GetCustomers()
@@ -108,9 +110,11 @@ namespace ONWLibrary
 			int pages = (count / 250) + 1;
 			for (int page = 1; page <= pages; page++)
 			{
-				ListFilter filter = new ListFilter();
-				filter.Limit = 250;
-				filter.Page = page;
+				ListFilter filter = new ListFilter
+				{
+					Limit = 250,
+					Page = page
+				};
 				customers.AddRange(CustomerService.ListAsync(filter).Result);
 			}
 			return customers;
@@ -179,7 +183,7 @@ namespace ONWLibrary
 				collection = collection.Trim();
 				IEnumerable<CustomCollection> customs = CustomCollectionService.ListAsync().Result;
 
-				var cc = customs.FirstOrDefault(c => c.Title == collection);
+				CustomCollection cc = customs.FirstOrDefault(c => c.Title == collection);
 				if (cc == null)
 				{
 					cc = CreateCustomCollection(collection);

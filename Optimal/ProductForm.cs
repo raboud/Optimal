@@ -21,25 +21,25 @@ namespace Optimal
 
 		public ProductForm(FlatProduct flat)
 		{
-			this.Product = new ProductDTO();
-			this.FlatProduct = flat;
+			Product = new ProductDTO();
+			FlatProduct = flat;
 			InitializeComponent();
 		}
 
-		private void buttonOk_Click(object sender, EventArgs e)
+		private void ButtonOk_Click(object sender, EventArgs e)
 		{
-			this.DialogResult = DialogResult.OK;
+			DialogResult = DialogResult.OK;
 		}
 
-		private void buttonCancel_Click(object sender, EventArgs e)
+		private void ButtonCancel_Click(object sender, EventArgs e)
 		{
-			this.DialogResult = DialogResult.Cancel;
+			DialogResult = DialogResult.Cancel;
 		}
 
 		private async void ProductForm_Load(object sender, EventArgs e)
 		{
-			this.Product.SetProduct(await Shopify.GetProductAsync(this.FlatProduct.GetProductVariant().ProductId.Value));
-			this.bindingSource2.DataSource = this.Product;
+			Product.SetProduct(await Shopify.GetProductAsync(FlatProduct.GetProductVariant().ProductId.Value));
+			bindingSource2.DataSource = Product;
 //			this.bindingSource2.ResetBindings(false);
 			//this.Product = await Shopify.GetProductAsync(this.FlatProduct.GetProductVariant().ProductId.Value);
 			//this.bindingSource2.DataSource = this.Product;
@@ -67,7 +67,7 @@ namespace Optimal
 			//this.dataGridView1.Columns.Remove("Metafields");
 		}
 
-		private void bindingSource2_CurrentChanged(object sender, EventArgs e)
+		private void BindingSource2_CurrentChanged(object sender, EventArgs e)
 		{
 
 		}

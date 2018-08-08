@@ -6,22 +6,23 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace xymogen_ripper
 {
     public class MasterScraper : Scraper
     {
-		string master = @"C:\Users\Robert\Documents\Supplements Master List.json";
-		string cleaned = @"C:\Users\Robert\Documents\Supplements Cleaned.json";
-		string supplement = @"C:\Users\Robert\Documents\Master-supplements.json";
-		readonly string CacheFile = @"C:\Users\Robert\Documents\Master.json";
-		readonly string dump = @"C:\Users\Robert\Documents\dump.json";
+		private readonly string master = @"C:\Users\Robert\Documents\Supplements Master List.json";
+		private readonly string cleaned = @"C:\Users\Robert\Documents\Supplements Cleaned.json";
+		private readonly string supplement = @"C:\Users\Robert\Documents\Master-supplements.json";
+		private readonly string CacheFile = @"C:\Users\Robert\Documents\Master.json";
+		private readonly string dump = @"C:\Users\Robert\Documents\dump.json";
 
 
 		public void Cleanup()
 		{
 			List<InvSupplement> inv = GetInventory();
-			IEnumerable<Product> products = Shopify.GetProducts().Result;
+			IEnumerable<Product> products = Shopify.GetProductsAsync().Result;
 			foreach (Product p in products )
 			{
 				p.Title = p.Title.Replace("®", "").Replace("™", "").Replace("®", "");
@@ -67,15 +68,15 @@ namespace xymogen_ripper
 			return inv;
 		}
 
-		public void flatProducts()
+		public void FlatProducts()
 		{
-			IEnumerable<Product> prods = Shopify.GetProducts().Result;
+			IEnumerable<Product> prods = Shopify.GetProductsAsync().Result;
 			File.WriteAllText(dump, JsonConvert.SerializeObject(prods, Formatting.Indented,
 				new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore }));
 			int count = 1;
-			foreach(var prod in prods)
+			foreach(Product prod in prods)
 			{
-				foreach (var pv in prod.Variants)
+				foreach (ProductVariant pv in prod.Variants)
 				{
 					System.Console.WriteLine($"{count}\t{prod.Vendor}\t{prod.Title}\t{pv.Price}\t{pv.Option1}\t{pv.Option3}");
 					count++;
@@ -232,8 +233,10 @@ namespace xymogen_ripper
 
 							if (prod == null)
 							{
-								prod = new MasterProduct();
-								prod.Name = i.Name;
+								prod = new MasterProduct
+								{
+									Name = i.Name
+								};
 								if (!string.IsNullOrEmpty(i.Company))
 								{
 									prod.Vendor = i.Company;
@@ -253,13 +256,15 @@ namespace xymogen_ripper
 								MasterProduct.Variant v;
 								if (prod.Variants.All(pv => pv.Option1 != i.Size || pv.Option2 != i.Flavor))
 								{
-									v = new MasterProduct.Variant();
-//									v.ImageUrl = i.ImageUrl;
-									v.Option1 = i.Size;
-									v.Option2 = i.Flavor;
-									v.Price = i.Retail;
-//									v.SKU = Path.GetFileNameWithoutExtension(v.ImageUrl);
-									v.ImageUrl = i.ImageUrl;
+									v = new MasterProduct.Variant
+									{
+										//v.ImageUrl = i.ImageUrl;
+										Option1 = i.Size,
+										Option2 = i.Flavor,
+										Price = i.Retail,
+										//v.SKU = Path.GetFileNameWithoutExtension(v.ImageUrl);
+										ImageUrl = i.ImageUrl
+									};
 									prod.Variants.Add(v);
 								}
 							}
@@ -296,22 +301,22 @@ namespace xymogen_ripper
 
 		}
 
-		public void Supplement2()
+		public async Task Supplement2()
 		{
 			List<InvSupplement> inv2 = null;
 			if (File.Exists(supplement))
 			{
 				inv2 = JsonConvert.DeserializeObject<List<InvSupplement>>(File.ReadAllText(supplement));
 			}
-			var prods = GetProducts();
+			List<MasterProduct> prods = GetProducts();
 
-			foreach (var prod in prods)
+			foreach (MasterProduct prod in prods)
 			{
 				if (prod != null && !inv2.Where(i => i.Name == prod.Name && i.Active).Any(i => i.Imported))
 				{
 					System.Console.Write($"{prod.Name} ");
-					BuildProduct(prod);
-					foreach (var inv in inv2.Where(i => i.Name == prod.Name && i.Active))
+					await BuildProduct(prod);
+					foreach (InvSupplement inv in inv2.Where(i => i.Name == prod.Name && i.Active))
 					{
 						inv.Imported = true;
 					}
@@ -325,28 +330,29 @@ namespace xymogen_ripper
 
 				}
 			}
-
-
-
 		}
 
-		public void BuildProduct(MasterProduct p)
+		public async Task BuildProduct(MasterProduct p)
 		{
-			Product prod = new Product();
-			prod.Options = new List<ProductOption>();
-			prod.Variants = new List<ProductVariant>();
-			prod.Images = new List<ProductImage>();
+			Product prod = new Product
+			{
+				Options = new List<ProductOption>(),
+				Variants = new List<ProductVariant>(),
+				Images = new List<ProductImage>(),
 
-			prod.PublishedScope = "global";
-			prod.Title = p.Name;
-			prod.BodyHtml = p.Description;
-			prod.Vendor = p.Vendor;
+				PublishedScope = "global",
+				Title = p.Name,
+				BodyHtml = p.Description,
+				Vendor = p.Vendor
+			};
 
 			if (p.Sizes.Count > 0)
 			{
-				ProductOption po = new ProductOption();
-				po.Name = "Size";
-				foreach (var vt in p.Sizes)
+				ProductOption po = new ProductOption
+				{
+					Name = "Size"
+				};
+				foreach (string vt in p.Sizes)
 				{
 					po.Values = new List<string>(p.Sizes);
 				}
@@ -356,9 +362,11 @@ namespace xymogen_ripper
 
 			if (p.Flavors.Count > 0)
 			{
-				ProductOption po = new ProductOption();
-				po.Name = "Flavor";
-				foreach (var vt in p.Flavors)
+				ProductOption po = new ProductOption
+				{
+					Name = "Flavor"
+				};
+				foreach (string vt in p.Flavors)
 				{
 					po.Values = new List<string>(p.Flavors);
 				}
@@ -366,17 +374,19 @@ namespace xymogen_ripper
 				(prod.Options as List<ProductOption>).Add(po);
 			}
 
-			foreach (var v in p.Variants)
+			foreach (MasterProduct.Variant v in p.Variants)
 			{
-				ProductVariant pv = new ProductVariant();
-				pv.Barcode = v.BarCode;
-				pv.Option1 = v.Option1;
-				pv.Option2 = v.Option2;
-				pv.Option3 = v.Option3;
-				pv.Taxable = true;
-				pv.InventoryManagement = "shopify";
-				pv.InventoryQuantity = 0;
-				pv.Price = v.Price;
+				ProductVariant pv = new ProductVariant
+				{
+					Barcode = v.BarCode,
+					Option1 = v.Option1,
+					Option2 = v.Option2,
+					Option3 = v.Option3,
+					Taxable = true,
+					InventoryManagement = "shopify",
+					InventoryQuantity = 0,
+					Price = v.Price
+				};
 
 				(prod.Variants as List<ProductVariant>).Add(pv);
 
@@ -390,7 +400,7 @@ namespace xymogen_ripper
 				}
 			}
 
-			prod = Shopify.CreateProduct(prod);
+			prod = await Shopify.CreateProductAsync(prod);
 			//foreach (ProductVariant pv in prod.Variants)
 			//{
 			//	ProductImage pi = prod.Images.FirstOrDefault(pii => pii.Src.Contains($"/{pv.SKU}.png"));
@@ -443,20 +453,20 @@ namespace xymogen_ripper
 
 			public MasterProduct()
 			{
-				this.Categories = new List<string>();
-				this.Variants = new List<Variant>();
-				this.Sizes = new List<string>();
-				this.Flavors = new List<string>();
+				Categories = new List<string>();
+				Variants = new List<Variant>();
+				Sizes = new List<string>();
+				Flavors = new List<string>();
 			}
 
 			public class Option
 			{
 				public Option()
 				{
-					this.values = new List<string>();
+					Values = new List<string>();
 				}
-				public string variantTypeName { get; set; }
-				public List<string> values { get; set; }
+				public string VariantTypeName { get; set; }
+				public List<string> Values { get; set; }
 			}
 
 			public class Variant

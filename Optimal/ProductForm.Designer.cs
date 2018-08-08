@@ -64,7 +64,7 @@
 			this.buttonCancel.TabIndex = 0;
 			this.buttonCancel.Text = "&Cancel";
 			this.buttonCancel.UseVisualStyleBackColor = false;
-			this.buttonCancel.Click += new System.EventHandler(this.buttonCancel_Click);
+			this.buttonCancel.Click += new System.EventHandler(this.ButtonCancel_Click);
 			// 
 			// buttonOk
 			// 
@@ -76,7 +76,7 @@
 			this.buttonOk.TabIndex = 1;
 			this.buttonOk.Text = "&Ok";
 			this.buttonOk.UseVisualStyleBackColor = false;
-			this.buttonOk.Click += new System.EventHandler(this.buttonOk_Click);
+			this.buttonOk.Click += new System.EventHandler(this.ButtonOk_Click);
 			// 
 			// textBoxTitle
 			// 
@@ -190,7 +190,7 @@
 			// 
 			this.bindingSource2.DataMember = "Product";
 			this.bindingSource2.DataSource = typeof(Optimal.ProductForm);
-			this.bindingSource2.CurrentChanged += new System.EventHandler(this.bindingSource2_CurrentChanged);
+			this.bindingSource2.CurrentChanged += new System.EventHandler(this.BindingSource2_CurrentChanged);
 			// 
 			// sKUDataGridViewTextBoxColumn
 			// 

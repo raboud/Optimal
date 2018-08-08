@@ -10,6 +10,7 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace xymogen_ripper
 {
@@ -17,7 +18,7 @@ namespace xymogen_ripper
 	{
 		readonly string CacheFile = @"C:\Users\Robert\Documents\OrthoMolecular.json";
 
-		public void Supplement2()
+		public async Task Supplement2()
 		{
 			List<InvSupplement> inv2 = JsonConvert.DeserializeObject<List<InvSupplement>>(File.ReadAllText(supplement));
 			List<InvSupplement> inv = inv2.Where(i => i.Active && !i.Imported && !string.IsNullOrEmpty(i.productNumber)).ToList();
@@ -60,7 +61,7 @@ namespace xymogen_ripper
 					foreach (InvSupplement i in inv2.Where(iv => vp.Value.Contains(iv.productNumber)))
 					{
 						i.Imported = true;
-						var v = prod.Variants.FirstOrDefault(pv => pv.ProductNumber == i.productNumber);
+						OrthoProduct.Variant v = prod.Variants.FirstOrDefault(pv => pv.ProductNumber == i.productNumber);
 						if (v != null)
 						{
 							if (i.Retail == 0.00m)
@@ -75,8 +76,8 @@ namespace xymogen_ripper
 						}
 					}
 					System.Console.Write($"{prod.Name} ");
-					BuildProduct(prod);
-					File.WriteAllText(supplement, JsonConvert.SerializeObject(inv2, Formatting.Indented,
+					await BuildProduct(prod);
+					await File.WriteAllTextAsync(supplement, JsonConvert.SerializeObject(inv2, Formatting.Indented,
 						new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore }));
 					System.Console.WriteLine($"completed");
 
@@ -91,9 +92,9 @@ namespace xymogen_ripper
 
 		}
 
-		string master = @"C:\Users\Robert\Documents\Supplements Master List.json";
-		string cleaned = @"C:\Users\Robert\Documents\Supplements Cleaned.json";
-		string supplement = @"C:\Users\Robert\Documents\ortho-supplements.json";
+		private readonly string master = @"C:\Users\Robert\Documents\Supplements Master List.json";
+		private readonly string cleaned = @"C:\Users\Robert\Documents\Supplements Cleaned.json";
+		private readonly string supplement = @"C:\Users\Robert\Documents\ortho-supplements.json";
 
 		public void Supplement()
 		{
@@ -193,10 +194,10 @@ namespace xymogen_ripper
 				new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore }));
 		}
 
-		private void BuildProduct(string name)
+		private async Task BuildProduct(string name)
 		{
 			OrthoProduct p = GetProduct(name);
-			BuildProduct(p);
+			await BuildProduct(p);
 		}
 
 		public void CheckProducts()
@@ -205,7 +206,7 @@ namespace xymogen_ripper
 			List<string> ProductNumbers = new List<string>();
 			List<string> Names = new List<string>();
 
-			foreach (var prod in prods)
+			foreach (OrthoProduct prod in prods)
 			{
 				if (Names.Contains(prod.Name.ToLower()))
 				{
@@ -219,7 +220,7 @@ namespace xymogen_ripper
 				{
 					System.Console.WriteLine($"Product Has No Varients - {prod.Name}");
 				}
-				foreach (var variant in prod.Variants)
+				foreach (OrthoProduct.Variant variant in prod.Variants)
 				{
 					if (ProductNumbers.Contains(variant.ProductNumber.ToLower()))
 					{
@@ -235,10 +236,10 @@ namespace xymogen_ripper
 
 		public void GetImages()
 		{
-			List<OrthoScraper.OrthoProduct> prods = this.GetProducts();
-			foreach (var prod in prods)
+			List<OrthoScraper.OrthoProduct> prods = GetProducts();
+			foreach (OrthoProduct prod in prods)
 			{
-				foreach (var variant in prod.Variants)
+				foreach (OrthoProduct.Variant variant in prod.Variants)
 				{
 					if (variant.ProductNumber != null)
 					{
@@ -246,7 +247,7 @@ namespace xymogen_ripper
 						{
 							continue;
 						}
-						this.GetImage(variant.ImageUrl, variant.ProductNumber);
+						GetImage(variant.ImageUrl, variant.ProductNumber);
 
 					}
 				}
@@ -292,39 +293,45 @@ namespace xymogen_ripper
 			return GetProducts().FirstOrDefault(p => p.Name == name);
 		}
 
-		private void BuildProduct(OrthoProduct p)
+		private async Task BuildProduct(OrthoProduct p)
 		{
-			Product prod = new Product();
-			prod.Options = new List<ProductOption>();
-			prod.Variants = new List<ProductVariant>();
-			prod.Images = new List<ProductImage>();
-
-			prod.PublishedScope = "global";
-			prod.Title = p.Name;
-			prod.BodyHtml = p.Description;
-			prod.Vendor = "Ortho Molecular";
-
-			foreach (var vt in p.Options)
+			Product prod = new Product
 			{
-				ProductOption po = new ProductOption();
-				po.Values = new List<string>(vt.values);
-				po.Name = vt.variantTypeName;
-				po.ProductId = prod.Id;
+				Options = new List<ProductOption>(),
+				Variants = new List<ProductVariant>(),
+				Images = new List<ProductImage>(),
+
+				PublishedScope = "global",
+				Title = p.Name,
+				BodyHtml = p.Description,
+				Vendor = "Ortho Molecular"
+			};
+
+			foreach (OrthoProduct.Option vt in p.Options)
+			{
+				ProductOption po = new ProductOption
+				{
+					Values = new List<string>(vt.values),
+					Name = vt.variantTypeName,
+					ProductId = prod.Id
+				};
 				(prod.Options as List<ProductOption>).Add(po);
 			}
 
-			foreach (var v in p.Variants)
+			foreach (OrthoProduct.Variant v in p.Variants)
 			{
-				ProductVariant pv = new ProductVariant();
-				pv.Barcode = v.BarCode;
-				pv.Option1 = v.Option1;
-				pv.Option2 = v.Option2;
-				pv.Option3 = v.Option3;
-				pv.SKU = "Ortho-" + v.ProductNumber;
-				pv.Taxable = true;
-				pv.InventoryManagement = "shopify";
-				pv.InventoryQuantity = 0;
-				pv.Price = v.Price;
+				ProductVariant pv = new ProductVariant
+				{
+					Barcode = v.BarCode,
+					Option1 = v.Option1,
+					Option2 = v.Option2,
+					Option3 = v.Option3,
+					SKU = "Ortho-" + v.ProductNumber,
+					Taxable = true,
+					InventoryManagement = "shopify",
+					InventoryQuantity = 0,
+					Price = v.Price
+				};
 
 				(prod.Variants as List<ProductVariant>).Add(pv);
 
@@ -336,15 +343,17 @@ namespace xymogen_ripper
 				(prod.Images as List<ProductImage>).Add(image);
 			}
 
-			prod = Shopify.CreateProduct(prod);
+			prod = await Shopify.CreateProductAsync(prod);
 			foreach (ProductVariant pv in prod.Variants)
 			{
 				ProductImage pi = prod.Images.FirstOrDefault(pii => pii.Src.Contains($"/{pv.SKU}.png"));
-				List<long> ids = new List<long>();
-				ids.Add(pv.Id.Value);
+				List<long> ids = new List<long>
+				{
+					pv.Id.Value
+				};
 				pi.VariantIds = ids;
 			}
-			prod = Shopify.UpdateProduct(prod);
+			prod = await Shopify.UpdateProductAsync(prod);
 
 			Shopify.CreateProductMetadata(prod.Id.Value, "ownProduct", "ShortDescription", p.BriefDescription);
 			Shopify.CreateProductMetadata(prod.Id.Value, "ownProduct", "Benefits", p.Benefits);
@@ -386,7 +395,7 @@ namespace xymogen_ripper
 		private List<OrthoProduct> GetProducts(int page, WebClient wc = null)
 		{
 			List<OrthoProduct> prods = new List<OrthoProduct>();
-			var url = $"https://www.orthomolecularproducts.com/store/view-all/?pg={page}";
+			string url = $"https://www.orthomolecularproducts.com/store/view-all/?pg={page}";
 			HtmlDocument doc = GetPage(url, wc);
 			HtmlNodeCollection n2 = doc.DocumentNode.SelectNodes("//h3[@class='itemTitle']/a");
 			if (n2 != null)
@@ -427,8 +436,10 @@ namespace xymogen_ripper
 			HtmlNode nc = doc.DocumentNode.SelectSingleNode("//script[contains(., 'IdevSelections(')]");
 			if (nc != null)
 			{
-				OrthoProduct.Option op = new OrthoProduct.Option();
-				op.variantTypeName = "Size";
+				OrthoProduct.Option op = new OrthoProduct.Option
+				{
+					variantTypeName = "Size"
+				};
 				string json = nc.InnerText;
 				json = json.Substring(json.IndexOf('{'));
 				json = json.Substring(0, json.LastIndexOf('}') + 1);
@@ -455,9 +466,9 @@ namespace xymogen_ripper
 					System.Console.Write(" Error2");
 				}
 
-				foreach (var c in ex.Classifications)
+				foreach (Classification c in ex.Classifications)
 				{
-					foreach (var s in c.s)
+					foreach (S s in c.s)
 					{
 						op.values.Add(s.s);
 					}
@@ -469,12 +480,14 @@ namespace xymogen_ripper
 				System.Console.Write(" Error3");
 			}
 
-			foreach (var vt in product.Options)
+			foreach (OrthoProduct.Option vt in product.Options)
 			{
 				foreach (string value in vt.values)
 				{
-					OrthoProduct.Variant v = new OrthoProduct.Variant();
-					v.Option1 = value;
+					OrthoProduct.Variant v = new OrthoProduct.Variant
+					{
+						Option1 = value
+					};
 					product.Variants.Add(v);
 				}
 			}
@@ -509,16 +522,16 @@ namespace xymogen_ripper
 
 			public OrthoProduct()
 			{
-				this.Categories = new List<string>();
-				this.Variants = new List<Variant>();
-				this.Options = new List<Option>();
+				Categories = new List<string>();
+				Variants = new List<Variant>();
+				Options = new List<Option>();
 			}
 
 			public class Option
 			{
 				public Option()
 				{
-					this.values = new List<string>();
+					values = new List<string>();
 				}
 				public string variantTypeName { get; set; }
 				public List<string> values { get; set; }

@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace ONWLibrary
 {
-	public class Shopify
+	public static class Shopify
 	{
 		private static string _myStore { get; set; } = "https://optimalnw.myshopify.com";
 		private static string _access { get; set; } = "3912f9da28ad92b17c79bf734b25246f";
@@ -18,6 +18,56 @@ namespace ONWLibrary
 		private static CollectService CollectService { get { return new CollectService(_myStore, _access); } }
 		private static ProductImageService ProductImageService { get { return new ProductImageService(_myStore, _access); } }
 		private static ProductService ProductService { get { return new ShopifySharp.ProductService(_myStore, _access); } }
+		private static MetaFieldService MetaFieldService { get { return new MetaFieldService(_myStore, _access); } }
+		private static OrderService OrderService { get { return new OrderService(_myStore, _access); } }
+
+		static public void Init()
+		{
+			System.Net.ServicePointManager.SecurityProtocol |= SecurityProtocolType.Tls11 | SecurityProtocolType.Tls12;
+			ShopifyService.SetGlobalExecutionPolicy(new SmartRetryExecutionPolicy());
+		}
+
+		static public Order Open(this Order o)
+		{
+			return OrderService.OpenAsync(o.Id.Value).Result;
+		}
+
+		static public Order Close(this Order o)
+		{
+			return OrderService.CloseAsync(o.Id.Value).Result;
+		}
+
+		static public List<Order> GetOrders()
+		{
+			List<Order> data = new List<Order>();
+			try
+			{
+				OrderFilter filter = new OrderFilter()
+				{
+					Status = "closed"
+				};
+
+				int count = OrderService.CountAsync(filter).Result;
+
+				int pages = (count / 250) + 1;
+				for (int page = 1; page <= pages; page++)
+				{
+					filter.Limit = 250;
+					filter.Page = page;
+					data.AddRange(OrderService.ListAsync(filter).Result);
+				}
+			}
+			catch (Exception e)
+			{
+
+			}
+			return data;
+		}
+
+		static public Order Update(this Order p)
+		{
+			return OrderService.UpdateAsync(p.Id.Value, p).Result;
+		}
 
 		internal static async Task<Product> GetProductAsync(long value)
 		{
@@ -39,12 +89,6 @@ namespace ONWLibrary
 		}
 
 		private static ProductVariantService ProductVariantService { get { return new ProductVariantService(_myStore, _access); } }
-		private static MetaFieldService MetaFieldService { get { return new MetaFieldService(_myStore, _access); } }
-		static public void Init()
-		{
-			System.Net.ServicePointManager.SecurityProtocol |= SecurityProtocolType.Tls11 | SecurityProtocolType.Tls12;
-			ShopifyService.SetGlobalExecutionPolicy(new SmartRetryExecutionPolicy());
-		}
 
 		static public CustomCollection CreateCustomCollection(string collection)
 		{
@@ -106,9 +150,11 @@ namespace ONWLibrary
 				int pages = (count / 250) + 1;
 				for (int page = 1; page <= pages; page++)
 				{
-					ProductFilter filter = new ProductFilter();
-					filter.Limit = 250;
-					filter.Page = page;
+					ProductFilter filter = new ProductFilter
+					{
+						Limit = 250,
+						Page = page
+					};
 					products.AddRange(await ProductService.ListAsync(filter));
 				}
 				if (withMetafields)
@@ -143,9 +189,11 @@ namespace ONWLibrary
 			int pages = (count / 250) + 1;
 			for (int page = 1; page <= pages; page++)
 			{
-				ListFilter filter = new ListFilter();
-				filter.Limit = 250;
-				filter.Page = page;
+				ListFilter filter = new ListFilter
+				{
+					Limit = 250,
+					Page = page
+				};
 				customers.AddRange(CustomerService.ListAsync(filter).Result);
 			}
 			return customers;
@@ -214,7 +262,7 @@ namespace ONWLibrary
 				collection = collection.Trim();
 				IEnumerable<CustomCollection> customs = CustomCollectionService.ListAsync().Result;
 
-				var cc = customs.FirstOrDefault(c => c.Title == collection);
+				CustomCollection cc = customs.FirstOrDefault(c => c.Title == collection);
 				if (cc == null)
 				{
 					cc = CreateCustomCollection(collection);

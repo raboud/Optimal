@@ -174,7 +174,7 @@ namespace xymogen_ripper
 		{
 			Shopify.Init();
 			List<Customer> c = Shopify.GetCustomers();
-			List<Order> l = Shopify.GetOrders();
+			List<Order> l = Shopify.GetOrdersAsync().Result;
 
 			string start = JsonConvert.SerializeObject(l, Formatting.Indented,
 				new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore });
@@ -189,28 +189,28 @@ namespace xymogen_ripper
 				c1.OrdersCount++;
 				
 				o1.Note = "";
-				o1.Open();
+				o1.OpenAsync().Wait();
 				o1.Customer = c1;
-				o1.Update();
-				o1.Close();
+				o1.UpdateAsync().Wait();
+				o1.CloseAsync().Wait();
 
 				o2.Note = "";
-				o2.Open();
+				o2.OpenAsync().Wait();
 				o2.Customer = c1;
-				o2.Update();
-				o2.Close();
+				o2.UpdateAsync().Wait();
+				o2.CloseAsync().Wait();
 
 				o3.Note = "";
-				o3.Open();
+				o3.OpenAsync().Wait();
 				o3.Customer = c1;
-				o3.Update();
-				o3.Close();
+				o3.UpdateAsync().Wait();
+				o3.CloseAsync().Wait();
 
 				string end = JsonConvert.SerializeObject(l, Formatting.Indented,
 					new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore });
-				Order o4 = Shopify.Update(o1);
-				Order o5 = Shopify.Update(o2);
-				Order o6 = Shopify.Update(o3);
+				Order o4 = Shopify.UpdateAsync(o1).Result;
+				Order o5 = Shopify.UpdateAsync(o2).Result;
+				Order o6 = Shopify.UpdateAsync(o3).Result;
 				Customer c2 = Shopify.UpdateCustomer(c1);
 			}
 
@@ -315,20 +315,24 @@ namespace xymogen_ripper
 				{
 
 				}
-				ShopifySharp.Address address = new Address();
-				address.Address1 = patient.Address1;
-				address.Address2 = patient.Address2;
-				address.City = patient.City;
-				address.Default = true;
-				address.Zip = patient.Zip;
-				address.CountryCode = "US";
-				address.ProvinceCode = patient.State;
+				ShopifySharp.Address address = new Address
+				{
+					Address1 = patient.Address1,
+					Address2 = patient.Address2,
+					City = patient.City,
+					Default = true,
+					Zip = patient.Zip,
+					CountryCode = "US",
+					ProvinceCode = patient.State
+				};
 
-				ShopifySharp.Customer customer = new ShopifySharp.Customer();
-				customer.Addresses = new List<Address>() { address };
-				customer.Email = patient.EMail;
-				customer.FirstName = patient.FirstName;
-				customer.LastName = patient.LastName;
+				ShopifySharp.Customer customer = new ShopifySharp.Customer
+				{
+					Addresses = new List<Address>() { address },
+					Email = patient.EMail,
+					FirstName = patient.FirstName,
+					LastName = patient.LastName
+				};
 				if (patient.CellPhone != null && IsValidUSPhoneNumber(patient.CellPhone))
 				{
 					customer.Phone = patient.CellPhone;
@@ -379,7 +383,7 @@ namespace xymogen_ripper
 		static List<string> invalidDomains = new List<string>();
 		static List<string> validDomains = new List<string>();
 
-		public static bool isValidEmail(string email)
+		public static bool IsValidEmail(string email)
 		{
 			bool retVal = false;
 			if (!string.IsNullOrEmpty(email))
@@ -494,7 +498,7 @@ namespace xymogen_ripper
 		}
 
 
-		public static void testShopify()
+		public static void TestShopify()
 		{
 			//ShopifySharp.CustomCollectionService customCollectionService = new CustomCollectionService("https://optimalnw.myshopify.com", "3912f9da28ad92b17c79bf734b25246f");
 			//IEnumerable<CustomCollection> customs = customCollectionService.ListAsync().Result;

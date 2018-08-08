@@ -8,21 +8,21 @@ namespace Optimal.Models
 	{
 		private ProductVariant _data;
 
-		public string Option1 { get { return this._data.Option1; } set { this._data.Option1 = value; } }
-		public string Option2 { get { return this._data.Option2; } set { this._data.Option2 = value; } }
-		public string Option3 { get { return this._data.Option3; } set { this._data.Option3 = value; } }
-		public string SKU { get { return this._data.SKU; } set { this._data.SKU = value; } }
-		public string Barcode { get { return this._data.Barcode; } set { this._data.Barcode = value; } }
-		public int? InventoryQuantity { get { return this._data.InventoryQuantity; } set { this._data.InventoryQuantity = value; } }
+		public string Option1 { get { return _data.Option1; } set { _data.Option1 = value; } }
+		public string Option2 { get { return _data.Option2; } set { _data.Option2 = value; } }
+		public string Option3 { get { return _data.Option3; } set { _data.Option3 = value; } }
+		public string SKU { get { return _data.SKU; } set { _data.SKU = value; } }
+		public string Barcode { get { return _data.Barcode; } set { _data.Barcode = value; } }
+		public int? InventoryQuantity { get { return _data.InventoryQuantity; } set { _data.InventoryQuantity = value; } }
 
 		public decimal? Cost
 		{
 			get
 			{
 				decimal? retval = null;
-				if (this._data.Metafields != null)
+				if (_data.Metafields != null)
 				{
-					MetaField meta = this._data.Metafields.FirstOrDefault(m => m.Key == "Cost");
+					MetaField meta = _data.Metafields.FirstOrDefault(m => m.Key == "Cost");
 					if (meta != null)
 					{
 						retval = decimal.Parse(meta.Value as string);
@@ -32,11 +32,11 @@ namespace Optimal.Models
 			}
 			set
 			{
-				if (this._data.Metafields == null)
+				if (_data.Metafields == null)
 				{
-					this._data.Metafields = new List<MetaField>();
+					_data.Metafields = new List<MetaField>();
 				}
-				MetaField meta = this._data.Metafields.FirstOrDefault(m => m.Key == "Cost");
+				MetaField meta = _data.Metafields.FirstOrDefault(m => m.Key == "Cost");
 				if (meta == null)
 				{
 					meta = new MetaField()
@@ -45,21 +45,21 @@ namespace Optimal.Models
 						Key = "Cost",
 						ValueType = "string"
 					};
-					(this._data.Metafields as IList<MetaField>).Add(meta);
+					(_data.Metafields as IList<MetaField>).Add(meta);
 				}
 				meta.Value = value.ToString();
 			}
 		}
-		public decimal? Price { get { return this._data.Price; } set { this._data.Price = value; } }
+		public decimal? Price { get { return _data.Price; } set { _data.Price = value; } }
 
 		public ProductVariantDTO()
 		{
-			this._data = new ProductVariant();
+			_data = new ProductVariant();
 		}
 
 		public ProductVariantDTO(ProductVariant pv)
 		{
-			this._data = pv;
+			_data = pv;
 			if (pv.Metafields == null)
 			{
 

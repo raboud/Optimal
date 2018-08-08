@@ -19,9 +19,9 @@ namespace Optimal
 
 		public ShopifyRepository()
 		{
-			this.Products = Shopify.GetProducts().Result.ToList();
-			this.BindingListProducts = new BindingList<Product>(this.Products);
-			this.BindingSource = new BindingSource(this.BindingListProducts, null);
+			Products = Shopify.GetProducts().Result.ToList();
+			BindingListProducts = new BindingList<Product>(Products);
+			BindingSource = new BindingSource(BindingListProducts, null);
 		}
 	}
 }

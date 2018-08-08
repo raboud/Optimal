@@ -21,12 +21,12 @@ namespace Square
 		{
 			// Configure OAuth2 access token for authorization: oauth2
 			Configuration.Default.AccessToken = "sq0atp-NbIspn1KqTCzVxmJJblliQ";
-			//			WebRequest.DefaultWebProxy = new WebProxy("127.0.0.1", 8888);
-//			FixLocations().Wait();
-			List<ShopifySharp.Product> products = Shopify.GetProducts().Result;
-			SetInventory(products).Wait();
-//			FixBarCodes(products).Wait();
-			var locations = GetLocations().Result;
+			//WebRequest.DefaultWebProxy = new WebProxy("127.0.0.1", 8888);
+			//			//FixLocations().Wait();
+			//List<ShopifySharp.Product> products = Shopify.GetProducts().Result;
+			//SetInventory(products).Wait();
+			//			FixBarCodes(products).Wait();
+			ListLocationsResponse locations = GetLocations().Result;
 			DeleteProducts().Wait();
 			PortItemsAsync(locations.Locations[0].Id).Wait();
 			//			PortItemsAsync("me").Wait();
@@ -60,7 +60,7 @@ namespace Square
 					if (resp.Objects != null && resp.Objects.Count > 0)
 					{
 						BatchDeleteCatalogObjectsRequest body = new BatchDeleteCatalogObjectsRequest(resp.Objects.Select(s => s.Id).ToList());
-						var delResp = await api.BatchDeleteCatalogObjectsAsync(body);
+						BatchDeleteCatalogObjectsResponse delResp = await api.BatchDeleteCatalogObjectsAsync(body);
 					}
 					cursor = resp.Cursor;
 				} while (cursor != null);
@@ -80,7 +80,7 @@ namespace Square
 					if (resp.Objects != null && resp.Objects.Count > 0)
 					{
 						BatchDeleteCatalogObjectsRequest body = new BatchDeleteCatalogObjectsRequest(resp.Objects.Select(s => s.Id).ToList());
-						var delResp = await api.BatchDeleteCatalogObjectsAsync(body);
+						BatchDeleteCatalogObjectsResponse delResp = await api.BatchDeleteCatalogObjectsAsync(body);
 					}
 					cursor = resp.Cursor;
 				} while (cursor != null);
@@ -120,7 +120,7 @@ namespace Square
 		static public async Task<ListTransactionsResponse> GetTransactions(string id)
 		{
 			TransactionsApi api = new TransactionsApi();
-			var resp = await api.ListTransactionsAsync(id);
+			ListTransactionsResponse resp = await api.ListTransactionsAsync(id);
 			return resp;
 		}
 
@@ -133,13 +133,15 @@ namespace Square
 
 		}
 
-		static public async Task portCatagories()
+		static public async Task PortCatagories()
 		{
 			List<ShopifySharp.CustomCollection> list = await Shopify.GetCollections();
 
 			List<CatalogObjectBatch> batches = new List<CatalogObjectBatch>();
-			CatalogObjectBatch batch = new CatalogObjectBatch();
-			batch.Objects = new List<CatalogObject>();
+			CatalogObjectBatch batch = new CatalogObjectBatch
+			{
+				Objects = new List<CatalogObject>()
+			};
 			batches.Add(batch);
 
 			foreach (ShopifySharp.CustomCollection collection in list)
@@ -156,8 +158,8 @@ namespace Square
 				batch.Objects.Add(category);
 			}
 			CatalogApi api = new CatalogApi();
-			var body = new BatchUpsertCatalogObjectsRequest(Guid.NewGuid().ToString(), batches);
-			var response = await api.BatchUpsertCatalogObjectsAsync(body);
+			BatchUpsertCatalogObjectsRequest body = new BatchUpsertCatalogObjectsRequest(Guid.NewGuid().ToString(), batches);
+			BatchUpsertCatalogObjectsResponse response = await api.BatchUpsertCatalogObjectsAsync(body);
 		}
 
 		static public async Task<V1Fee> CreateTaxV1(string locationId)
@@ -165,7 +167,7 @@ namespace Square
 			V1ItemsApi v1 = new V1ItemsApi();
 			V1Fee v1Fee = new V1Fee(
 				null,
-				"Sale Tax",
+				"Sales Tax",
 				".089",
 				V1Fee.CalculationPhaseEnum.FEESUBTOTALPHASE,
 				V1Fee.AdjustmentTypeEnum.TAX,
@@ -197,8 +199,10 @@ namespace Square
 			CatalogApi api = new CatalogApi();
 			string cursor = null;
 			List<CatalogObjectBatch> batches = new List<CatalogObjectBatch>();
-			CatalogObjectBatch batch = new CatalogObjectBatch();
-			batch.Objects = new List<CatalogObject>();
+			CatalogObjectBatch batch = new CatalogObjectBatch
+			{
+				Objects = new List<CatalogObject>()
+			};
 			batches.Add(batch);
 
 			do
@@ -265,11 +269,13 @@ namespace Square
 			string cursor = null;
 			List<CatalogObjectBatch> batches = new List<CatalogObjectBatch>();
 
-			string[] types = { "MODIFIER_LIST", "ITEM", "MODIFIER", "CATEGORY", "DISCOUNT", "TAX" };
+			string[] types = { "MODIFIER_LIST", "ITEM", "MODIFIER", "CATEGORY", "DISCOUNT", "TAX", "ITEM_VARIATION" };
 			foreach (string type in types)
 			{
-				CatalogObjectBatch batch = new CatalogObjectBatch();
-				batch.Objects = new List<CatalogObject>();
+				CatalogObjectBatch batch = new CatalogObjectBatch
+				{
+					Objects = new List<CatalogObject>()
+				};
 				batches.Add(batch);
 				do
 				{
@@ -297,9 +303,9 @@ namespace Square
 			V1Fee tax = await CreateTaxV1(locationId);
 			string discoutId = await CreateDiscount(locationId);
 
-			List<ShopifySharp.Product> products = await Shopify.GetProducts();
+			List<ShopifySharp.Product> products = await Shopify.GetProductsAsync();
 
-			var v1 = new V1ItemsApi();
+			V1ItemsApi v1 = new V1ItemsApi();
 
 			foreach (ShopifySharp.Product prod in products)
 			{
@@ -342,11 +348,13 @@ namespace Square
 
 		static public async Task PortItemsAsync2(string locationId)
 		{
-			List<ShopifySharp.Product> products = await Shopify.GetProducts();
+			List<ShopifySharp.Product> products = await Shopify.GetProductsAsync();
 
 			List<CatalogObjectBatch> batches = new List<CatalogObjectBatch>();
-			CatalogObjectBatch batch = new CatalogObjectBatch();
-			batch.Objects = new List<CatalogObject>();
+			CatalogObjectBatch batch = new CatalogObjectBatch
+			{
+				Objects = new List<CatalogObject>()
+			};
 			batches.Add(batch);
 
 			CatalogObject tax = new CatalogObject(
@@ -396,7 +404,7 @@ namespace Square
 				);
 				foreach (ShopifySharp.ProductVariant variant in prod.Variants)
 				{
-					var vari = new CatalogObject
+					CatalogObject vari = new CatalogObject
 					(
 						Type: CatalogObject.TypeEnum.ITEMVARIATION,
 						Id: $"#{prod.Title}-{variant.Title}",
@@ -422,10 +430,10 @@ namespace Square
 
 			CatalogApi api = new CatalogApi();
 
-			var body = new BatchUpsertCatalogObjectsRequest(Guid.NewGuid().ToString(), batches);
-			var response = await api.BatchUpsertCatalogObjectsAsync(body);
+			BatchUpsertCatalogObjectsRequest body = new BatchUpsertCatalogObjectsRequest(Guid.NewGuid().ToString(), batches);
+			BatchUpsertCatalogObjectsResponse response = await api.BatchUpsertCatalogObjectsAsync(body);
 
-			foreach (var item in response.Objects.Where(o => o.Type == CatalogObject.TypeEnum.ITEM))
+			foreach (CatalogObject item in response.Objects.Where(o => o.Type == CatalogObject.TypeEnum.ITEM))
 			{
 				if (!string.IsNullOrEmpty(item.ItemData.Variations?[0].ItemVariationData.UserData))
 				{
@@ -439,11 +447,11 @@ namespace Square
 		}
 
 
-		static public void portCustomers()
+		static public void PortCustomers()
 		{
 			List<ShopifySharp.Customer> customers = Shopify.GetCustomers();
 
-			foreach (var customer in customers)
+			foreach (ShopifySharp.Customer customer in customers)
 			{
 				CustomersApi api = new CustomersApi();
 				if (customer.DefaultAddress != null)
@@ -499,12 +507,12 @@ namespace Square
 			string itemID, string imageUrl)
 		{
 			byte[] data;
-			using (var web = new WebClient())
+			using (WebClient web = new WebClient())
 			{
 				data = await web.DownloadDataTaskAsync(imageUrl);
 			}
 
-			using (var client = new HttpClient())
+			using (HttpClient client = new HttpClient())
 			{
 				// Configure the "Authorization: Bearer ..." HTTP header
 				client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", Configuration.Default.AccessToken);
@@ -523,12 +531,14 @@ namespace Square
 					imageContent.Headers.ContentType = MediaTypeHeaderValue.Parse("image/png");
 				}
 
-				var requestContent = new MultipartFormDataContent();
-				requestContent.Add(imageContent, "image_data", Path.GetFileName(imageUrl));
+				MultipartFormDataContent requestContent = new MultipartFormDataContent
+				{
+					{ imageContent, "image_data", Path.GetFileName(imageUrl) }
+				};
 
 				// POST the image to the server
-				var url = $"{DOMAIN}/v1/{locationId }/items/{itemID}/image";
-				var response = await client.PostAsync(url, requestContent);
+				string url = $"{DOMAIN}/v1/{locationId }/items/{itemID}/image";
+				HttpResponseMessage response = await client.PostAsync(url, requestContent);
 
 				response.EnsureSuccessStatusCode();
 

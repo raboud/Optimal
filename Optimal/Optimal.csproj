@@ -129,12 +129,6 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Form1.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="Form1.Designer.cs">
-      <DependentUpon>Form1.cs</DependentUpon>
-    </Compile>
     <Compile Include="Models\FlatProduct.cs" />
     <Compile Include="Models\ProductDTO.cs" />
     <Compile Include="Models\ProductVariantDTO.cs" />

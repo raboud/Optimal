@@ -14,12 +14,12 @@ namespace ClassLibrary2.Models.Square
 
 		public CatalogItem GetCatalogItem()
 		{
-			return this._CatalogItem;
+			return _CatalogItem;
 		}
 
 		public void SetCatalogItem(CatalogItem  item)
 		{
-			this._CatalogItem = item;
+			_CatalogItem = item;
 		}
 	}
 
@@ -29,14 +29,14 @@ namespace ClassLibrary2.Models.Square
 		{
 			get
 			{
-				this.init();
-				return this._userData.Option1;
+				Init();
+				return _userData.Option1;
 			}
 			set
 			{
-				this.init();
-				this._userData.Option1 = value;
-				this.update();
+				Init();
+				_userData.Option1 = value;
+				Update();
 			}
 		}
 
@@ -44,14 +44,14 @@ namespace ClassLibrary2.Models.Square
 		{
 			get
 			{
-				this.init();
-				return this._userData.Option2;
+				Init();
+				return _userData.Option2;
 			}
 			set
 			{
-				this.init();
-				this._userData.Option2 = value;
-				this.update();
+				Init();
+				_userData.Option2 = value;
+				Update();
 			}
 		}
 
@@ -59,14 +59,14 @@ namespace ClassLibrary2.Models.Square
 		{
 			get
 			{
-				this.init();
-				return this._userData.Option3;
+				Init();
+				return _userData.Option3;
 			}
 			set
 			{
-				this.init();
-				this._userData.Option3 = value;
-				this.update();
+				Init();
+				_userData.Option3 = value;
+				Update();
 			}
 		}
 
@@ -74,36 +74,36 @@ namespace ClassLibrary2.Models.Square
 		{
 			get
 			{
-				this.init();
-				return this._userData.Cost;
+				Init();
+				return _userData.Cost;
 			}
 			set
 			{
-				this.init();
-				this._userData.Cost = value;
-				this.update();
+				Init();
+				_userData.Cost = value;
+				Update();
 			}
 		}
 
-		private userData _userData;
+		private UserData2 _userData;
 
-		private void update()
+		private void Update()
 		{
-			this.UserData = JsonConvert.SerializeObject(this._userData, Formatting.Indented,
+			UserData = JsonConvert.SerializeObject(_userData, Formatting.Indented,
 				new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore });
 		}
 		private bool _initialized = false;
-		private void init()
+		private void Init()
 		{
 			if (!_initialized)
 			{
-				this._userData = JsonConvert.DeserializeObject<userData>(this.UserData);
-				this._initialized = true;
+				_userData = JsonConvert.DeserializeObject<UserData2>(UserData);
+				_initialized = true;
 			}
 
 		}
 
-		private class userData
+		private class UserData2
 		{
 			public string Option1 { get; set; }
 			public string Option2 { get; set; }

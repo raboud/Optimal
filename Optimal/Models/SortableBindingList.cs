@@ -21,7 +21,7 @@ namespace Optimal.Models
 		{
 			foreach (object o in list)
 			{
-				this.Add((T)o);
+				Add((T)o);
 			}
 		}
 
@@ -77,12 +77,12 @@ namespace Optimal.Models
 				int newIndex = 0;
 				foreach (T item in query)
 				{
-					this.Items[newIndex] = item;
+					Items[newIndex] = item;
 					newIndex++;
 				}
 
 				isSortedValue = true;
-				this.OnListChanged(new ListChangedEventArgs(ListChangedType.Reset, -1));
+				OnListChanged(new ListChangedEventArgs(ListChangedType.Reset, -1));
 			}
 			else
 			{

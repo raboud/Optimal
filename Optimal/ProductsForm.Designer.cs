@@ -50,7 +50,7 @@ namespace Optimal
 			this.dataGridView1.Name = "dataGridView1";
 			this.dataGridView1.Size = new System.Drawing.Size(896, 397);
 			this.dataGridView1.TabIndex = 0;
-			this.dataGridView1.EditingControlShowing += new System.Windows.Forms.DataGridViewEditingControlShowingEventHandler(this.dataGridView1_EditingControlShowing);
+			this.dataGridView1.EditingControlShowing += new System.Windows.Forms.DataGridViewEditingControlShowingEventHandler(this.DataGridView1_EditingControlShowing);
 			// 
 			// textSearch
 			// 
@@ -60,7 +60,7 @@ namespace Optimal
 			this.textSearch.Name = "textSearch";
 			this.textSearch.Size = new System.Drawing.Size(258, 20);
 			this.textSearch.TabIndex = 1;
-			this.textSearch.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.textSearch_KeyPress);
+			this.textSearch.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.TextSearch_KeyPress);
 			// 
 			// buttonSearch
 			// 
@@ -71,7 +71,7 @@ namespace Optimal
 			this.buttonSearch.TabIndex = 2;
 			this.buttonSearch.Text = "Search";
 			this.buttonSearch.UseVisualStyleBackColor = true;
-			this.buttonSearch.Click += new System.EventHandler(this.buttonSearch_Click);
+			this.buttonSearch.Click += new System.EventHandler(this.ButtonSearch_Click);
 			// 
 			// ProductsForm
 			// 

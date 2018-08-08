@@ -12,18 +12,18 @@ namespace Optimal.Models
 	{
 		private Product _data;
 
-		public string Name { get { return this._data.Title; } set { this._data.Title = value; } }
-		public string Vendor { get { return this._data.Vendor; } set { this._data.Vendor = value; } }
-		public string Description { get { return this._data.BodyHtml; } set { this._data.BodyHtml = value; } }
+		public string Name { get { return _data.Title; } set { _data.Title = value; } }
+		public string Vendor { get { return _data.Vendor; } set { _data.Vendor = value; } }
+		public string Description { get { return _data.BodyHtml; } set { _data.BodyHtml = value; } }
 
 		public List<ProductVariantDTO> Variants {get;set;}
 		public string ShortDesciption
 		{
 			get
 			{
-				if (this._data.Metafields != null)
+				if (_data.Metafields != null)
 				{
-					return this._data.Metafields.FirstOrDefault(m => m.Key == "ShortDescription")?.Value.ToString();
+					return _data.Metafields.FirstOrDefault(m => m.Key == "ShortDescription")?.Value.ToString();
 				}
 				else
 				{
@@ -32,11 +32,11 @@ namespace Optimal.Models
 			}
 			set
 			{
-				if (this._data.Metafields == null)
+				if (_data.Metafields == null)
 				{
-					this._data.Metafields = new List<MetaField>();
+					_data.Metafields = new List<MetaField>();
 				}
-				MetaField meta = this._data.Metafields.FirstOrDefault(m => m.Key == "ShortDescription");
+				MetaField meta = _data.Metafields.FirstOrDefault(m => m.Key == "ShortDescription");
 				if (meta == null)
 				{
 					meta = new MetaField()
@@ -45,7 +45,7 @@ namespace Optimal.Models
 						Key = "ShortDescription",
 						ValueType = "string"
 					};
-					this._data.Metafields.ToList().Add(meta);
+					_data.Metafields.ToList().Add(meta);
 				}
 				meta.Value = value;
 			}
@@ -53,28 +53,28 @@ namespace Optimal.Models
 
 		public ProductDTO()
 		{
-			this._data = new Product();
-			this.Variants = new List<ProductVariantDTO>();
+			_data = new Product();
+			Variants = new List<ProductVariantDTO>();
 		}
 
 		public ProductDTO(Product product)
 		{
-			this.Variants = new List<ProductVariantDTO>();
-			this.SetProduct(product);
+			Variants = new List<ProductVariantDTO>();
+			SetProduct(product);
 		}
 
 		public Product GetProduct()
 		{
-			return this._data;
+			return _data;
 		}
 
 		public void SetProduct(Product product)
 		{
-			this._data = product;
-			this.Variants.Clear();
-			foreach (ProductVariant v in this._data.Variants)
+			_data = product;
+			Variants.Clear();
+			foreach (ProductVariant v in _data.Variants)
 			{
-				this.Variants.Add(new ProductVariantDTO(v));
+				Variants.Add(new ProductVariantDTO(v));
 			}
 		}
 	}
