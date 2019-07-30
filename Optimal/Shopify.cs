@@ -57,7 +57,7 @@ namespace ONWLibrary
 					data.AddRange(OrderService.ListAsync(filter).Result);
 				}
 			}
-			catch (Exception e)
+			catch (Exception )
 			{
 
 			}
@@ -249,8 +249,8 @@ namespace ONWLibrary
 				Value = value,
 				ValueType = valueType
 			};
-			MetaField t = MetaFieldService.CreateAsync(meta, id, type).Result;
-			IEnumerable<MetaField> metas = MetaFieldService.ListAsync(id, type).Result;
+			MetaFieldService.CreateAsync(meta, id, type).Wait();
+//			MetaFieldService.ListAsync(id, type).Result;
 			return true;
 		}
 

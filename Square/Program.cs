@@ -15,20 +15,24 @@ using System.Threading.Tasks;
 
 namespace Square
 {
-	public class Program
+	public static class Program
 	{
 		public static void Main(string[] args)
 		{
 			// Configure OAuth2 access token for authorization: oauth2
-			Configuration.Default.AccessToken = "sq0atp-NbIspn1KqTCzVxmJJblliQ";
+			string HMS = "sq0atp-M5ylQzjwtUqHFV_1aZBkWw";
+			string TEST = "sq0atp-NbIspn1KqTCzVxmJJblliQ";
+			Configuration.Default.AccessToken = HMS;
+
+//			PortCustomersAsync().Wait();
 			//WebRequest.DefaultWebProxy = new WebProxy("127.0.0.1", 8888);
-			//			//FixLocations().Wait();
-			//List<ShopifySharp.Product> products = Shopify.GetProducts().Result;
+			FixLocations().Wait();
+			List<ShopifySharp.Product> products = Shopify.GetProductsAsync().Result;
 			//SetInventory(products).Wait();
-			//			FixBarCodes(products).Wait();
+			FixBarCodes(products).Wait();
 			ListLocationsResponse locations = GetLocations().Result;
-			DeleteProducts().Wait();
-			PortItemsAsync(locations.Locations[0].Id).Wait();
+//			DeleteProducts().Wait();
+//			PortItemsAsync(locations.Locations[0].Id).Wait();
 			//			PortItemsAsync("me").Wait();
 			//var transactions = GetTransactions(locations.Locations[0].Id).Result;
 			//var customer = GetCustomer("Raboud", "Robert").Result;
@@ -223,6 +227,7 @@ namespace Square
 
 //				ShopifySharp.ProductVariant variant = products.Select(p => p.Variants.First(v => v.Id.ToString() == obj.ItemVariationData.UserData)).First();
 				obj.ItemVariationData.Upc = variant.Barcode;
+				obj.ItemVariationData.Sku = variant.Barcode;
 //				obj.PresentAtAllLocations = true;
 			}
 
@@ -245,12 +250,12 @@ namespace Square
 					long id = long.Parse(obj.ItemVariationData.UserData);
 					ShopifySharp.Product prod = products.FirstOrDefault(p => p.Variants.Any(v => v.Id == id));
 					ShopifySharp.ProductVariant variant = prod.Variants.FirstOrDefault(v => v.Id == id);
-					V1AdjustInventoryRequest body = new V1AdjustInventoryRequest(variant.InventoryQuantity, V1AdjustInventoryRequest.AdjustmentTypeEnum.MANUALADJUST, "From Shopify");
+					V1AdjustInventoryRequest body = new V1AdjustInventoryRequest(variant.InventoryQuantity * -1, V1AdjustInventoryRequest.AdjustmentTypeEnum.MANUALADJUST, "From Shopify");
 					try
 					{
 						await v1api.AdjustInventoryAsync(obj.CatalogV1Ids[0].LocationId, obj.CatalogV1Ids[0]._CatalogV1Id, body);
 					}
-					catch (Exception e)
+					catch (Exception)
 					{
 
 					}
@@ -341,7 +346,7 @@ namespace Square
 					await ImageUploader.PortImage(locationId, item2.Id, prod.Images.First().Src);
 				}
 			}
-			await SetInventory(products);
+//			await SetInventory(products);
 			await FixBarCodes(products);
 			await FixLocations();
 		}
@@ -447,7 +452,7 @@ namespace Square
 		}
 
 
-		static public void PortCustomers()
+		static public async Task PortCustomersAsync()
 		{
 			List<ShopifySharp.Customer> customers = Shopify.GetCustomers();
 
@@ -456,11 +461,7 @@ namespace Square
 				CustomersApi api = new CustomersApi();
 				if (customer.DefaultAddress != null)
 				{
-					if (customer.DefaultAddress.CountryCode != "US")
-					{
-
-					}
-					api.CreateCustomer(new CreateCustomerRequest(
+					await api.CreateCustomerAsync(new CreateCustomerRequest(
 					  GivenName: customer.FirstName,
 					  FamilyName: customer.LastName,
 					  EmailAddress: customer.Email,
@@ -477,7 +478,7 @@ namespace Square
 				}
 				else
 				{
-					api.CreateCustomer(new CreateCustomerRequest(
+					await api.CreateCustomerAsync(new CreateCustomerRequest(
 					  GivenName: customer.FirstName,
 					  FamilyName: customer.LastName,
 					  EmailAddress: customer.Email,
