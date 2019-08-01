@@ -27,12 +27,12 @@ namespace Square
 			//SetInventory(products).Wait();
 			//			FixBarCodes(products).Wait();
 			ListLocationsResponse locations = GetLocations().Result;
-			DeleteProducts().Wait();
-			PortItemsAsync(locations.Locations[0].Id).Wait();
-			//			PortItemsAsync("me").Wait();
-			//var transactions = GetTransactions(locations.Locations[0].Id).Result;
-			//var customer = GetCustomer("Raboud", "Robert").Result;
-			//var customer2 = GetCustomer("Raboud", "Carrie").Result;
+            //			DeleteProducts().Wait();
+            //			PortItemsAsync(locations.Locations[0].Id).Wait();
+            //			PortItemsAsync("me").Wait();
+            ListTransactionsResponse transactions = GetTransactions(locations.Locations[0].Id).Result;
+            Customer customer = GetCustomer("Raboud", "Robert").Result;
+            Customer customer2 = GetCustomer("Raboud", "Carrie").Result;
 
 			//var customerTransactions = transactions.Transactions.Where(t => t.Tenders.Any(te => te.CustomerId == customer.Id)).ToList();
 			//foreach (var transaction in customerTransactions)
@@ -147,7 +147,7 @@ namespace Square
 			foreach (ShopifySharp.CustomCollection collection in list)
 			{
 				CatalogObject category = new CatalogObject(
-				  Type: CatalogObject.TypeEnum.CATEGORY,
+				  Type: "CATEGORY",
 				  Id: $"#{collection.Title}",
 				  PresentAtAllLocations: true,
 				  CategoryData: new CatalogCategory
@@ -169,12 +169,12 @@ namespace Square
 				null,
 				"Sales Tax",
 				".089",
-				V1Fee.CalculationPhaseEnum.FEESUBTOTALPHASE,
-				V1Fee.AdjustmentTypeEnum.TAX,
+				"FEESUBTOTALPHASE",
+				"TAX",
 				true,
 				true,
-				V1Fee.InclusionTypeEnum.ADDITIVE,
-				V1Fee.TypeEnum.USSALESTAX);
+				"ADDITIVE",
+				"USSALESTAX");
 			V1Fee resp = await v1.CreateFeeAsync(locationId, v1Fee);
 			return resp;
 		}
@@ -187,9 +187,9 @@ namespace Square
 				"Employee",
 				"0.40",
 				null,
-				V1Discount.DiscountTypeEnum.FIXED,
+				"FIXED",
 				false,
-				V1Discount.ColorEnum.B21212);
+				"B21212");
 			V1Discount resp = await v1.CreateDiscountAsync(locationId, body);
 			return resp.Id;
 		}
@@ -245,7 +245,7 @@ namespace Square
 					long id = long.Parse(obj.ItemVariationData.UserData);
 					ShopifySharp.Product prod = products.FirstOrDefault(p => p.Variants.Any(v => v.Id == id));
 					ShopifySharp.ProductVariant variant = prod.Variants.FirstOrDefault(v => v.Id == id);
-					V1AdjustInventoryRequest body = new V1AdjustInventoryRequest(variant.InventoryQuantity, V1AdjustInventoryRequest.AdjustmentTypeEnum.MANUALADJUST, "From Shopify");
+					V1AdjustInventoryRequest body = new V1AdjustInventoryRequest(variant.InventoryQuantity, "MANUALADJUST", "From Shopify");
 					try
 					{
 						await v1api.AdjustInventoryAsync(obj.CatalogV1Ids[0].LocationId, obj.CatalogV1Ids[0]._CatalogV1Id, body);
@@ -312,8 +312,8 @@ namespace Square
 				System.Console.WriteLine(prod.Title);
 				V1Item item = new V1Item(
 					Name: prod.Title,
-					Type: V1Item.TypeEnum.NORMAL,
-					Visibility: V1Item.VisibilityEnum.PUBLIC,
+					Type: "NORMAL",
+					Visibility: "PUBLIC",
 					AvailableOnline: true,
 					Variations: new List<V1Variation>(),
 					Taxable: true,
@@ -324,10 +324,10 @@ namespace Square
 					V1Variation vari = new V1Variation
 					(
 						Name: variant.Title,
-						PricingType: V1Variation.PricingTypeEnum.FIXEDPRICING,
+						PricingType: "FIXEDPRICING",
 						PriceMoney: new V1Money(
 								Amount: variant.Price.HasValue ? ((int?)(variant.Price.Value * 100L)) : null,
-								CurrencyCode: V1Money.CurrencyCodeEnum.USD
+								CurrencyCode: "USD"
 							),
 						TrackInventory: true,
 						UserData: variant.Id.ToString()
@@ -358,28 +358,28 @@ namespace Square
 			batches.Add(batch);
 
 			CatalogObject tax = new CatalogObject(
-			  Type: CatalogObject.TypeEnum.TAX,
+			  "TAX",
 			  Id: $"#salestax",
 			  PresentAtAllLocations: true,
 			  TaxData: new CatalogTax
 			  {
 				  Name = "SalesTax",
 				  AppliesToCustomAmounts = true,
-				  CalculationPhase = CatalogTax.CalculationPhaseEnum.SUBTOTALPHASE,
+				  CalculationPhase = "SUBTOTALPHASE",
 				  Enabled = true,
-				  InclusionType = CatalogTax.InclusionTypeEnum.ADDITIVE,
+				  InclusionType = "ADDITIVE",
 				  Percentage = "8.9"
 			  }
 			);
 
 			CatalogObject employee = new CatalogObject(
-			  Type: CatalogObject.TypeEnum.DISCOUNT,
+			  Type: "DISCOUNT",
 			  Id: $"#employee",
 			  PresentAtAllLocations: true,
 			  DiscountData: new CatalogDiscount
 			  {
 				  Name = "Employee",
-				  DiscountType = CatalogDiscount.DiscountTypeEnum.FIXEDPERCENTAGE,
+				  DiscountType = "FIXEDPERCENTAGE",
 				  LabelColor = "Red",
 				  PinRequired = false,
 				  Percentage = "40"
@@ -390,7 +390,7 @@ namespace Square
 			foreach (ShopifySharp.Product prod in products)
 			{
 				CatalogObject obj = new CatalogObject(
-					Type: CatalogObject.TypeEnum.ITEM,
+					Type: "ITEM",
 					Id: $"#{prod.Title}",
 					PresentAtAllLocations: true,
 					ItemData: new CatalogItem
@@ -406,7 +406,7 @@ namespace Square
 				{
 					CatalogObject vari = new CatalogObject
 					(
-						Type: CatalogObject.TypeEnum.ITEMVARIATION,
+						Type: "ITEMVARIATION",
 						Id: $"#{prod.Title}-{variant.Title}",
 						PresentAtAllLocations: true,
 						ItemVariationData: new CatalogItemVariation()
@@ -416,10 +416,10 @@ namespace Square
 							ItemId = $"#{prod.Title}",
 							Name = variant.Title,
 							TrackInventory = true,
-							PricingType = CatalogItemVariation.PricingTypeEnum.FIXEDPRICING,
+							PricingType = "FIXEDPRICING",
 							PriceMoney = new Money(
 								Amount: variant.Price.HasValue ? ((long?)(variant.Price.Value * 100L)) : null,
-								Currency: Money.CurrencyEnum.USD
+								Currency: "USD"
 							)
 						}
 					);
@@ -433,7 +433,7 @@ namespace Square
 			BatchUpsertCatalogObjectsRequest body = new BatchUpsertCatalogObjectsRequest(Guid.NewGuid().ToString(), batches);
 			BatchUpsertCatalogObjectsResponse response = await api.BatchUpsertCatalogObjectsAsync(body);
 
-			foreach (CatalogObject item in response.Objects.Where(o => o.Type == CatalogObject.TypeEnum.ITEM))
+			foreach (CatalogObject item in response.Objects.Where(o => o.Type == "ITEM"))
 			{
 				if (!string.IsNullOrEmpty(item.ItemData.Variations?[0].ItemVariationData.UserData))
 				{
@@ -470,7 +470,7 @@ namespace Square
 						Locality: customer.DefaultAddress.City,
 						AdministrativeDistrictLevel1: customer.DefaultAddress.ProvinceCode,
 						PostalCode: customer.DefaultAddress.Zip,
-						Country: Address.CountryEnum.US),
+						Country: "US"),
 					  PhoneNumber: customer.Phone,
 					  ReferenceId: customer.Id.Value.ToString()
 					));
