@@ -21,16 +21,18 @@ namespace xymogen_ripper
 		public XymogenScraper()
 		{
 		}
-		private static async Task BuildProduct(int id)
+
+		private static async Task BuildProductAsync(int id)
 		{
-			XymogenScraper.XymogenProduct p = XymogenScraper.GetCacheProductInfo(id);
-			await BuildProduct(p);
+			XymogenProduct p = GetCacheProductInfo(id);
+			await BuildProductAsync(p);
 		}
-		private static async Task Supplement2()
+
+		private static async Task Supplement2Async()
 		{
 			List<InvSupplement> inv2 = JsonConvert.DeserializeObject<List<InvSupplement>>(File.ReadAllText(@"C:\Users\Robert\Documents\supplements.json"));
 			List<InvSupplement> inv = inv2.Where(i => i.Company == "Xymogen" && i.Active && !i.Imported && i.XymogenId != 0).ToList();
-			Dictionary<long, XymogenScraper.XymogenProduct> prods = XymogenScraper.GetCacheProductInfo();
+			Dictionary<long, XymogenScraper.XymogenProduct> prods = GetCacheProductInfo();
 
 			Dictionary<long, List<int>> toImport = new Dictionary<long, List<int>>();
 			foreach (InvSupplement i in inv)
@@ -62,7 +64,7 @@ namespace xymogen_ripper
 
 			foreach (KeyValuePair<long, List<int>> vp in toImport)
 			{
-				XymogenScraper.XymogenProduct prod = prods.Values.FirstOrDefault(p => p.MasterId == vp.Key);
+				XymogenProduct prod = prods.Values.FirstOrDefault(p => p.MasterId == vp.Key);
 				if (prod != null)
 				{
 					prod.Variants.RemoveAll(v => !vp.Value.Contains(v.ProductID));
@@ -84,7 +86,7 @@ namespace xymogen_ripper
 						}
 					}
 					System.Console.Write($"{prod.Name} ");
-					await BuildProduct(prod);
+					await BuildProductAsync(prod);
 					File.WriteAllText(@"C:\Users\Robert\Documents\supplements.json", JsonConvert.SerializeObject(inv2, Formatting.Indented,
 						new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore }));
 					System.Console.WriteLine($"completed");
@@ -102,9 +104,9 @@ namespace xymogen_ripper
 
 		private static void Supplement()
 		{
-			Dictionary<long, XymogenScraper.XymogenProduct> prods = XymogenScraper.GetCacheProductInfo();
+			Dictionary<long, XymogenProduct> prods = GetCacheProductInfo();
 			List<string> names = new List<string>();
-			foreach (XymogenScraper.XymogenProduct prod in prods.Values)
+			foreach (XymogenProduct prod in prods.Values)
 			{
 				names.Add(prod.Name);
 				prod.Name = prod.Name.Replace("™", "").Replace("®", "");
@@ -136,7 +138,7 @@ namespace xymogen_ripper
 						if (i.Active)
 						{
 
-							XymogenScraper.XymogenProduct prod = prods.Values.FirstOrDefault(p => p.Name == i.Name);
+							XymogenProduct prod = prods.Values.FirstOrDefault(p => p.Name == i.Name);
 
 							if (prod == null)
 							{
@@ -144,10 +146,10 @@ namespace xymogen_ripper
 							}
 							else
 							{
-								XymogenScraper.XymogenProduct.Variant v;
+								XymogenProduct.Variant v;
 								if (i.Flavor == null)
 								{
-									XymogenScraper.XymogenProduct.Option op = prod.Options.FirstOrDefault(o => o.variantTypeName == "Flavor");
+									XymogenProduct.Option op = prod.Options.FirstOrDefault(o => o.variantTypeName == "Flavor");
 									if (op != null && op.values.Count == 1)
 									{
 										i.Flavor = op.values[0].variantTypeValueName;
@@ -186,7 +188,7 @@ namespace xymogen_ripper
 		}
 
 
-		private static async Task BuildProduct(XymogenScraper.XymogenProduct p)
+		private static async Task BuildProductAsync(XymogenProduct p)
 		{
 			Product prod = new Product
 			{
@@ -208,7 +210,7 @@ namespace xymogen_ripper
 					Name = vt.variantTypeName,
 					ProductId = prod.Id
 				};
-				foreach (XymogenScraper.XymogenProduct.Value vv in vt.values)
+				foreach (XymogenProduct.Value vv in vt.values)
 				{
 					(po.Values as List<string>).Add(vv.variantTypeValueName);
 				}
@@ -402,30 +404,32 @@ namespace xymogen_ripper
 		public XymogenProduct ProcessPage(int id, WebClient wc = null)
 		{
 			string url = $"https://www.xymogen.com/formulas/products/{id}";
-			WebClient client = wc;
 
-			if (client == null)
-			{
-				client = new WebClient();
-			}
-			rawHtml = client.DownloadString(new Uri(url));
-			if (wc == null)
-			{
-				client.Dispose();
-			}
-			while (rawHtml.Contains("\n "))
-			{
-				rawHtml = rawHtml.Replace("\n ", "\n");
-			}
+            HtmlDocument doc = GetPage(url, wc);
+			//WebClient client = wc;
 
-			rawHtml = rawHtml.Replace("\n", "\r\n");
-			rawHtml = rawHtml.Replace("\r\r\n", "\r\n");
-			rawHtml = rawHtml.Replace("\r\n\r\n", "\r\n");
-			rawHtml = rawHtml.Replace("\r\n", "\n");
-			HtmlWeb web = new HtmlWeb();
-			HtmlDocument doc = new HtmlDocument();
-			doc.LoadHtml(rawHtml);
-			sanitizeNode(doc.DocumentNode);
+			//if (client == null)
+			//{
+			//	client = new WebClient();
+			//}
+			//rawHtml = client.DownloadString(new Uri(url));
+			//if (wc == null)
+			//{
+			//	client.Dispose();
+			//}
+			//while (rawHtml.Contains("\n "))
+			//{
+			//	rawHtml = rawHtml.Replace("\n ", "\n");
+			//}
+
+			//rawHtml = rawHtml.Replace("\n", "\r\n");
+			//rawHtml = rawHtml.Replace("\r\r\n", "\r\n");
+			//rawHtml = rawHtml.Replace("\r\n\r\n", "\r\n");
+			//rawHtml = rawHtml.Replace("\r\n", "\n");
+			//HtmlWeb web = new HtmlWeb();
+			//HtmlDocument doc = new HtmlDocument();
+			//doc.LoadHtml(rawHtml);
+			//sanitizeNode(doc.DocumentNode);
 
 			HtmlNodeCollection n2 = doc.DocumentNode.SelectNodes("//div[@id='udpProductDetails']/div/div");
 			if (n2 != null)

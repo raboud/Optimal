@@ -6,7 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace ClassLibrary2.Models.Square
+namespace ONWLibrary.Models.Square
 {
 	public class CatalogItemDTO
 	{

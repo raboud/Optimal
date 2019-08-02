@@ -3,9 +3,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.IO;
-using System.Drawing;
-using foxit.pdf;
-using foxit.common.fxcrt;
 using Newtonsoft.Json;
 using ARSoft.Tools.Net.Dns;
 using System.Globalization;
@@ -14,205 +11,53 @@ using ONWLibrary;
 namespace xymogen_ripper
 {
 
-	public class PdfConverter : IDisposable
-	{
-		public bool Initialize()
-		{
-			string sn = "XO2bTnKD7mk7ocivflLYfMRd7Qo3F2Zrsd4MrR7Rn0Nf9e0scxuR3Q==";
-			string key = "8f0YFcONvRkN+ldwlpAFW0NF9QtjOhOBvj1eVQBq2RrKr+Xx9JCMyffRyr9miPWWZtsw0GDcbFCtsYwg9N46zzhFD4tH3TGe6JmEFuRvgiZ80ENo61EN+pIezaoNOTtQCuXU+UaXH6KkKckW7RN+NT4PU7Zn2eN03C/FVAPpAgUUQEaG0UNVOi6MtPSQjd2+ESr1vThJaTKxBmn0wsVmOs1l9S+92sg3R+lc1r8vIiISWv1lf3zT09glb3v5Jax4B3kEZ03/HvWa3+oYSoIsXrg4dKZElY/U1LkRhxhnOe6Er1wpNIpgNCpANvkU8SGMDv3Ija3xw6ng8JeNwKlgJwtzNdGHoCDbihfLBLRLhYwInxAnpbKm1kMyRduOETrhhRfN7mVxmWNfGPOoPxrc+JLiwuFfZPqjYrxW9g2hQicS+1WA1o9nRH7Yn+yN9McsiZbPDbnlS7XMjgVMT659J07nicrTVW5+ZPG4WPtpqY4s5xeBJfCakBhDRfDci2W1unD5hk++1y1z3DlFm3O734kmlJq8L6NaYPgVfHrtyfJ16NOwddUfSFFtarl1wQjOMrkdgKrnFJqo91RgQJflWk5HW4UwXzJ9kAkyZg5mDzIG+8iWNCaCjQtkAt2bhj947a1XZgFrt7YMMUW6uqoq4Jey4h4GgyAL3oCtq6AlTP6ZJLj1lJowQdOeyStoWji5cOMec60PrBR3lIm1x9ZQsny/Hd8d38TkqXI3wAWMH8a1hdq9iFkCRkVaD5TI2/x3TJ0lo5ymCwYz3hQkXpyfj68KKRMISD73LyFymipd8J8CtRaUYfulS0nJmm1kRi9+QksP3zy/mW+M2Zzd0A45vRKIYh5eeBNMHW0hbQCVZZxi2vB1ImjnXTvDRTdJ7XWimF6qKQVSO12rEE8tVW2R+guWnZTnD6JfGvlLH6hkVLDx4nN5Cb5uo9MAauUKZFWUATj63PZV+CqVAA4A0rAyrEqk4ZYJYpCDdVhatnqWXVduyiCkz5urKJqLm+lp5xqGkGCPMbYHk7H1xkr70T9N3s4IosHlwDKkUj6n7k1IIsAJzfeqnJ+zm85zJwKRM1noYQUl+4IJWKMHj6sNjsY5B/gmCzBvZj/6Ey2wt2u2B3zGxaaa9tGtvVFhAEx6LItE5w8UJrF/b06BmKhin7iEhSLpYAgL4flp9wl//5rI8NcoBw5ta3j2NyzUEGCuqhyhbfY2AOW4SgQfPifO4CvyDX5jlOFzskZ3aL1XMlReVIsSLsLXxYf3";
-			foxit.common.ErrorCode error_code = foxit.common.Library.Initialize(sn, key);
-			if (error_code != foxit.common.ErrorCode.e_ErrSuccess)
-			{
-				Console.WriteLine("Library Initialize Error: {0}\n", error_code);
-				return false;
-			}
-			return true;
-		}
-
-		public Bitmap ToBitmap(string pdfFile)
-		{
-			Bitmap bitmap = null;
-
-			using (PDFDoc doc = new PDFDoc(pdfFile))
-			{
-				foxit.common.ErrorCode error_code = doc.Load(null);
-				if (error_code == foxit.common.ErrorCode.e_ErrSuccess)
-				{
-					//	Console.WriteLine("The PDFDoc [{0}] Error: {1}\n", pdfFile, error_code);
-					//}
-					//else
-					//{
-
-					int nPageCount = doc.GetPageCount();
-
-					for (int i = 0; i < nPageCount; i++)
-					{
-						using (PDFPage page = doc.GetPage(i))
-						{
-							// Parse page.
-							page.StartParse((int)foxit.pdf.PDFPage.ParseFlags.e_ParsePageNormal, null, false);
-
-							int width = (int)(page.GetWidth()) * 600 / 96;
-							int height = (int)(page.GetHeight()) * 600 / 96;
-							Matrix2D matrix = page.GetDisplayMatrix(0, 0, width, height, page.GetRotation());
-
-							// Prepare a bitmap for rendering.
-							bitmap = new Bitmap(width, height, System.Drawing.Imaging.PixelFormat.Format32bppArgb);
-							bitmap.SetResolution((float)600, (float)600);
-							using (Graphics draw = Graphics.FromImage(bitmap))
-							{
-								draw.Clear(Color.White);
-
-								// Render page
-								foxit.common.Renderer render = new foxit.common.Renderer(bitmap, false);
-								render.StartRender(page, matrix, null);
-							}
-						}
-					}
-				}
-			}
-			return bitmap;
-		}
-
-		#region IDisposable Support
-		private bool disposedValue = false; // To detect redundant calls
-
-		protected virtual void Dispose(bool disposing)
-		{
-			if (!disposedValue)
-			{
-				if (disposing)
-				{
-				}
-
-				foxit.common.Library.Release();
-				disposedValue = true;
-			}
-		}
-
-		// TODO: override a finalizer only if Dispose(bool disposing) above has code to free unmanaged resources.
-		// ~PdfConverter() {
-		//   // Do not change this code. Put cleanup code in Dispose(bool disposing) above.
-		//   Dispose(false);
-		// }
-
-		// This code added to correctly implement the disposable pattern.
-		public void Dispose()
-		{
-			// Do not change this code. Put cleanup code in Dispose(bool disposing) above.
-			Dispose(true);
-			// TODO: uncomment the following line if the finalizer is overridden above.
-			// GC.SuppressFinalize(this);
-		}
-		#endregion
-	}
-
-	public class InvSupplement
-	{
-		public string OptimalNutritionName { get; set; }
-		public string Supplement { get; set; }
-		public string Name { get; set; }
-		public string Dosage { get; set; }
-		public string Size { get; set; }
-		public string Flavor { get; set; }
-		public string Company { get; set; }
-		public bool Active { get; set; }
-		public decimal? Cost { get; set; }
-		public decimal? Retail { get; set; }
-		public string url { get; set; }
-		public int XymogenId { get; set; }
-		public string productNumber { get; set; }
-		public bool Imported { get; set; }
-		public string ImageUrl { get; set; }
-	}
-
-	public partial class Patient
-	{
-		[JsonProperty("Patient No")]
-		public long PatientNo { get; set; }
-
-		[JsonProperty("Last Name")]
-		public string LastName { get; set; }
-
-		[JsonProperty("First Name")]
-		public string FirstName { get; set; }
-
-		[JsonProperty("Address1", NullValueHandling = NullValueHandling.Ignore)]
-		public string Address1 { get; set; }
-
-		[JsonProperty("Address2", NullValueHandling = NullValueHandling.Ignore)]
-		public string Address2 { get; set; }
-
-		[JsonProperty("City", NullValueHandling = NullValueHandling.Ignore)]
-		public string City { get; set; }
-
-		[JsonProperty("State", NullValueHandling = NullValueHandling.Ignore)]
-		public string State { get; set; }
-
-		[JsonProperty("Zip", NullValueHandling = NullValueHandling.Ignore)]
-		public string Zip { get; set; }
-
-		[JsonProperty("Home Phone", NullValueHandling = NullValueHandling.Ignore)]
-		public string HomePhone { get; set; }
-
-		[JsonProperty("Cell Phone", NullValueHandling = NullValueHandling.Ignore)]
-		public string CellPhone { get; set; }
-
-		[JsonProperty("EMail", NullValueHandling = NullValueHandling.Ignore)]
-		public string EMail { get; set; }
-
-		[JsonProperty("Other Phone", NullValueHandling = NullValueHandling.Ignore)]
-		public string OtherPhone { get; set; }
-
-		[JsonProperty("Work Phone", NullValueHandling = NullValueHandling.Ignore)]
-		public string WorkPhone { get; set; }
-	}
-
-	class Program
+    class Program
 	{
 		static void Main(string[] args)
 		{
-			Shopify.Init();
-			List<Customer> c = Shopify.GetCustomers();
-			List<Order> l = Shopify.GetOrdersAsync().Result;
+            XymogenScraper.GetProductInfo();
 
-			string start = JsonConvert.SerializeObject(l, Formatting.Indented,
-				new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore });
+   //         Shopify.Init();
+			//List<Customer> c = Shopify.GetCustomers();
+			//List<Order> l = Shopify.GetOrdersAsync().Result;
 
-			Customer c1 = c.FirstOrDefault(cu => cu.FirstName == "Darren" && cu.LastName == "Fink");
-			Order o1 = l.FirstOrDefault(o => o.Name == "ONW-1006");
-			Order o2 = l.FirstOrDefault(o => o.Name == "ONW-1007");
-			Order o3 = l.FirstOrDefault(o => o.Name == "ONW-1008");
+			//string start = JsonConvert.SerializeObject(l, Formatting.Indented,
+			//	new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore });
 
-			if (o2 != null && o1 != null && o3 != null && c1 != null)
-			{
-				c1.OrdersCount++;
+			//Customer c1 = c.FirstOrDefault(cu => cu.FirstName == "Darren" && cu.LastName == "Fink");
+			//Order o1 = l.FirstOrDefault(o => o.Name == "ONW-1006");
+			//Order o2 = l.FirstOrDefault(o => o.Name == "ONW-1007");
+			//Order o3 = l.FirstOrDefault(o => o.Name == "ONW-1008");
+
+			//if (o2 != null && o1 != null && o3 != null && c1 != null)
+			//{
+			//	c1.OrdersCount++;
 				
-				o1.Note = "";
-				o1.OpenAsync().Wait();
-				o1.Customer = c1;
-				o1.UpdateAsync().Wait();
-				o1.CloseAsync().Wait();
+			//	o1.Note = "";
+			//	o1.OpenAsync().Wait();
+			//	o1.Customer = c1;
+			//	o1.UpdateAsync().Wait();
+			//	o1.CloseAsync().Wait();
 
-				o2.Note = "";
-				o2.OpenAsync().Wait();
-				o2.Customer = c1;
-				o2.UpdateAsync().Wait();
-				o2.CloseAsync().Wait();
+			//	o2.Note = "";
+			//	o2.OpenAsync().Wait();
+			//	o2.Customer = c1;
+			//	o2.UpdateAsync().Wait();
+			//	o2.CloseAsync().Wait();
 
-				o3.Note = "";
-				o3.OpenAsync().Wait();
-				o3.Customer = c1;
-				o3.UpdateAsync().Wait();
-				o3.CloseAsync().Wait();
+			//	o3.Note = "";
+			//	o3.OpenAsync().Wait();
+			//	o3.Customer = c1;
+			//	o3.UpdateAsync().Wait();
+			//	o3.CloseAsync().Wait();
 
-				string end = JsonConvert.SerializeObject(l, Formatting.Indented,
-					new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore });
-				Order o4 = Shopify.UpdateAsync(o1).Result;
-				Order o5 = Shopify.UpdateAsync(o2).Result;
-				Order o6 = Shopify.UpdateAsync(o3).Result;
-				Customer c2 = Shopify.UpdateCustomer(c1);
-			}
+			//	string end = JsonConvert.SerializeObject(l, Formatting.Indented,
+			//		new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore });
+			//	Order o4 = Shopify.UpdateAsync(o1).Result;
+			//	Order o5 = Shopify.UpdateAsync(o2).Result;
+			//	Order o6 = Shopify.UpdateAsync(o3).Result;
+			//	Customer c2 = Shopify.UpdateCustomer(c1);
+			//}
 
 
 			//			MasterScraper scraper = new MasterScraper();

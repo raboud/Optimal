@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 15
-VisualStudioVersion = 15.0.27703.2026
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.29123.88
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "xymogen_ripper", "xymogen_ripper\xymogen_ripper.csproj", "{D3AEC7B0-40D6-4CC9-B1AE-578904C1E238}"
 EndProject
@@ -9,7 +9,9 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ONWLibrary", "ClassLibrary2
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Optimal", "Optimal\Optimal.csproj", "{FADB3102-6A63-4985-B678-A58AB3AFACD4}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Square", "Square\Square.csproj", "{CF62FCA3-2C80-4BA9-A78F-DC3E9E0DFC5A}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Square", "Square\Square.csproj", "{CF62FCA3-2C80-4BA9-A78F-DC3E9E0DFC5A}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RandR.Utilities", "Utilities\RandR.Utilities.csproj", "{0E669625-1D89-42BD-BD46-7901DE6099FA}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -33,6 +35,10 @@ Global
 		{CF62FCA3-2C80-4BA9-A78F-DC3E9E0DFC5A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{CF62FCA3-2C80-4BA9-A78F-DC3E9E0DFC5A}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{CF62FCA3-2C80-4BA9-A78F-DC3E9E0DFC5A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0E669625-1D89-42BD-BD46-7901DE6099FA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0E669625-1D89-42BD-BD46-7901DE6099FA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0E669625-1D89-42BD-BD46-7901DE6099FA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0E669625-1D89-42BD-BD46-7901DE6099FA}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

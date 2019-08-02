@@ -15,7 +15,7 @@ namespace xymogen_ripper
 			List<HtmlNode> toRemove = new List<HtmlNode>();
 			foreach (HtmlNode n in node.ChildNodes)
 			{
-				if (n.Name == "#text" && n.OuterHtml == "\n")
+				if (n.Name == "#text" && string.IsNullOrWhiteSpace(n.OuterHtml))
 				{
 					toRemove.Add(n);
 				}
@@ -46,15 +46,15 @@ namespace xymogen_ripper
 			{
 				client.Dispose();
 			}
-			while (rawHtml.Contains("\n "))
-			{
-				rawHtml = rawHtml.Replace("\n ", "\n");
-			}
+//			while (rawHtml.Contains("\n "))
+//			{
+//				rawHtml = rawHtml.Replace("\n ", "\n");
+//			}
 
-			rawHtml = rawHtml.Replace("\n", "\r\n");
-			rawHtml = rawHtml.Replace("\r\r\n", "\r\n");
-			rawHtml = rawHtml.Replace("\r\n\r\n", "\r\n");
-			rawHtml = rawHtml.Replace("\r\n", "\n");
+//			rawHtml = rawHtml.Replace("\n", "\r\n");
+//			rawHtml = rawHtml.Replace("\r\r\n", "\r\n");
+//			rawHtml = rawHtml.Replace("\r\n\r\n", "\r\n");
+//			rawHtml = rawHtml.Replace("\r\n", "\n");
 			HtmlDocument doc = new HtmlDocument();
 			doc.LoadHtml(rawHtml);
 			sanitizeNode(doc.DocumentNode);

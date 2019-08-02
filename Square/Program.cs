@@ -15,17 +15,21 @@ using System.Threading.Tasks;
 
 namespace Square
 {
-	public class Program
+	public static class Program
 	{
 		public static void Main(string[] args)
 		{
 			// Configure OAuth2 access token for authorization: oauth2
-			Configuration.Default.AccessToken = "sq0atp-NbIspn1KqTCzVxmJJblliQ";
+			string HMS = "sq0atp-M5ylQzjwtUqHFV_1aZBkWw";
+			string TEST = "sq0atp-NbIspn1KqTCzVxmJJblliQ";
+			Configuration.Default.AccessToken = HMS;
+
+//			PortCustomersAsync().Wait();
 			//WebRequest.DefaultWebProxy = new WebProxy("127.0.0.1", 8888);
-			//			//FixLocations().Wait();
-			//List<ShopifySharp.Product> products = Shopify.GetProducts().Result;
+			//FixLocations().Wait();
+			List<ShopifySharp.Product> products = Shopify.GetProductsAsync().Result;
 			//SetInventory(products).Wait();
-			//			FixBarCodes(products).Wait();
+			//FixBarCodes(products).Wait();
 			ListLocationsResponse locations = GetLocations().Result;
             //			DeleteProducts().Wait();
             //			PortItemsAsync(locations.Locations[0].Id).Wait();
@@ -33,6 +37,7 @@ namespace Square
             ListTransactionsResponse transactions = GetTransactions(locations.Locations[0].Id).Result;
             Customer customer = GetCustomer("Raboud", "Robert").Result;
             Customer customer2 = GetCustomer("Raboud", "Carrie").Result;
+            GetProductsAsync().Wait();
 
 			//var customerTransactions = transactions.Transactions.Where(t => t.Tenders.Any(te => te.CustomerId == customer.Id)).ToList();
 			//foreach (var transaction in customerTransactions)
@@ -47,20 +52,18 @@ namespace Square
 			//}
 		}
 
-		static public async Task GetProducts()
+		static public async Task GetProductsAsync()
 		{
 			CatalogApi api = new CatalogApi();
 			string cursor = null;
-			string[] types = { "ITEM_VARIATION", "MODIFIER_LIST", "ITEM", "MODIFIER", "CATEGORY", "DISCOUNT", "TAX" };
-			foreach (string type in types)
+//			string[] types = { "ITEM_VARIATION", "MODIFIER_LIST", "ITEM", "MODIFIER", "CATEGORY", "DISCOUNT", "TAX" };
+//			foreach (string type in types)
 			{
 				do
 				{
-					ListCatalogResponse resp = await api.ListCatalogAsync(cursor, type);
+					ListCatalogResponse resp = await api.ListCatalogAsync(cursor, "ITEM");
 					if (resp.Objects != null && resp.Objects.Count > 0)
 					{
-						BatchDeleteCatalogObjectsRequest body = new BatchDeleteCatalogObjectsRequest(resp.Objects.Select(s => s.Id).ToList());
-						BatchDeleteCatalogObjectsResponse delResp = await api.BatchDeleteCatalogObjectsAsync(body);
 					}
 					cursor = resp.Cursor;
 				} while (cursor != null);
@@ -223,6 +226,7 @@ namespace Square
 
 //				ShopifySharp.ProductVariant variant = products.Select(p => p.Variants.First(v => v.Id.ToString() == obj.ItemVariationData.UserData)).First();
 				obj.ItemVariationData.Upc = variant.Barcode;
+				obj.ItemVariationData.Sku = variant.Barcode;
 //				obj.PresentAtAllLocations = true;
 			}
 
@@ -250,7 +254,7 @@ namespace Square
 					{
 						await v1api.AdjustInventoryAsync(obj.CatalogV1Ids[0].LocationId, obj.CatalogV1Ids[0]._CatalogV1Id, body);
 					}
-					catch (Exception e)
+					catch (Exception)
 					{
 
 					}
@@ -267,12 +271,12 @@ namespace Square
 		{
 			CatalogApi api = new CatalogApi();
 			string cursor = null;
-			List<CatalogObjectBatch> batches = new List<CatalogObjectBatch>();
 
 			string[] types = { "MODIFIER_LIST", "ITEM", "MODIFIER", "CATEGORY", "DISCOUNT", "TAX", "ITEM_VARIATION" };
 			foreach (string type in types)
 			{
-				CatalogObjectBatch batch = new CatalogObjectBatch
+                List<CatalogObjectBatch> batches = new List<CatalogObjectBatch>();
+                CatalogObjectBatch batch = new CatalogObjectBatch
 				{
 					Objects = new List<CatalogObject>()
 				};
@@ -282,7 +286,7 @@ namespace Square
 					ListCatalogResponse resp = await api.ListCatalogAsync(cursor, type);
 					if (resp.Objects != null && resp.Objects.Count > 0)
 					{
-						batch.Objects.AddRange(resp.Objects);
+						batch.Objects.AddRange(resp.Objects.Where(o => o.PresentAtAllLocations == false));
 					}
 					cursor = resp.Cursor;
 				} while (cursor != null);
@@ -291,12 +295,12 @@ namespace Square
 				{
 					obj.PresentAtAllLocations = true;
 				}
-			}
+                BatchUpsertCatalogObjectsRequest body = new BatchUpsertCatalogObjectsRequest(Guid.NewGuid().ToString(), batches);
+                BatchUpsertCatalogObjectsResponse response = await api.BatchUpsertCatalogObjectsAsync(body);
+            }
 
 
-			BatchUpsertCatalogObjectsRequest body = new BatchUpsertCatalogObjectsRequest(Guid.NewGuid().ToString(), batches);
-			BatchUpsertCatalogObjectsResponse response = await api.BatchUpsertCatalogObjectsAsync(body);
-		}
+        }
 
 		static public async Task PortItemsAsync(string locationId)
 		{
@@ -341,7 +345,7 @@ namespace Square
 					await ImageUploader.PortImage(locationId, item2.Id, prod.Images.First().Src);
 				}
 			}
-			await SetInventory(products);
+//			await SetInventory(products);
 			await FixBarCodes(products);
 			await FixLocations();
 		}
@@ -447,7 +451,7 @@ namespace Square
 		}
 
 
-		static public void PortCustomers()
+		static public async Task PortCustomersAsync()
 		{
 			List<ShopifySharp.Customer> customers = Shopify.GetCustomers();
 
@@ -456,11 +460,7 @@ namespace Square
 				CustomersApi api = new CustomersApi();
 				if (customer.DefaultAddress != null)
 				{
-					if (customer.DefaultAddress.CountryCode != "US")
-					{
-
-					}
-					api.CreateCustomer(new CreateCustomerRequest(
+					await api.CreateCustomerAsync(new CreateCustomerRequest(
 					  GivenName: customer.FirstName,
 					  FamilyName: customer.LastName,
 					  EmailAddress: customer.Email,
@@ -477,7 +477,7 @@ namespace Square
 				}
 				else
 				{
-					api.CreateCustomer(new CreateCustomerRequest(
+					await api.CreateCustomerAsync(new CreateCustomerRequest(
 					  GivenName: customer.FirstName,
 					  FamilyName: customer.LastName,
 					  EmailAddress: customer.Email,

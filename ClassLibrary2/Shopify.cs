@@ -16,7 +16,7 @@ namespace ONWLibrary
 		private static CustomerService CustomerService { get { return new CustomerService(_myStore, _access); } }
 		private static CustomCollectionService CustomCollectionService { get { return new CustomCollectionService(_myStore, _access); } }
 		private static CollectService CollectService { get { return new CollectService(_myStore, _access); } }
-		private static ProductImageService ProductImageService { get { return new ProductImageService(_myStore, _access); } }
+//		private static ProductImageService ProductImageService { get { return new ProductImageService(_myStore, _access); } }
 		private static ProductService ProductService { get { return new ShopifySharp.ProductService(_myStore, _access); } }
 		private static MetaFieldService MetaFieldService { get { return new MetaFieldService(_myStore, _access); } }
 		private static OrderService OrderService { get { return new OrderService(_myStore, _access); } }
@@ -27,14 +27,14 @@ namespace ONWLibrary
 			ShopifyService.SetGlobalExecutionPolicy(new SmartRetryExecutionPolicy());
 		}
 
-		static public async Task<Order> OpenAsync(this Order o)
+		static public Task<Order> OpenAsync(this Order o)
 		{
-			return await OrderService.OpenAsync(o.Id.Value);
+			return OrderService.OpenAsync(o.Id.Value);
 		}
 
-		static public async Task<Order> CloseAsync(this Order o)
+		static public Task<Order> CloseAsync(this Order o)
 		{
-			return await OrderService.CloseAsync(o.Id.Value);
+			return OrderService.CloseAsync(o.Id.Value);
 		}
 
 		static public async Task<List<Order>> GetOrdersAsync()
@@ -47,14 +47,14 @@ namespace ONWLibrary
 					Status = "closed"
 				};
 
-				int count = await OrderService.CountAsync(filter);
+				int count = await OrderService.CountAsync(filter).ConfigureAwait(false);
 
 				int pages = (count / 250) + 1;
 				for (int page = 1; page <= pages; page++)
 				{
 					filter.Limit = 250;
 					filter.Page = page;
-					data.AddRange(await OrderService.ListAsync(filter));
+					data.AddRange(await OrderService.ListAsync(filter).ConfigureAwait(false));
 				}
 			}
 			catch (Exception e)
@@ -64,9 +64,9 @@ namespace ONWLibrary
 			return data;
 		}
 
-		static public async Task<Order> UpdateAsync(this Order p)
+		static public Task<Order> UpdateAsync(this Order p)
 		{
-			return await OrderService.UpdateAsync(p.Id.Value, p);
+			return OrderService.UpdateAsync(p.Id.Value, p);
 		}
 
 		static public async Task<List<Product>> GetProductsAsync()
@@ -74,7 +74,7 @@ namespace ONWLibrary
 			List<Product> products = new List<Product>();
 			try
 			{
-				int count = await ProductService.CountAsync();
+				int count = await ProductService.CountAsync().ConfigureAwait(false);
 				int pages = (count / 250) + 1;
 				for (int page = 1; page <= pages; page++)
 				{
@@ -83,7 +83,7 @@ namespace ONWLibrary
 						Limit = 250,
 						Page = page
 					};
-					products.AddRange(await ProductService.ListAsync(filter));
+					products.AddRange(await ProductService.ListAsync(filter).ConfigureAwait(false));
 				}
 			}
 			catch (Exception e)
@@ -93,14 +93,14 @@ namespace ONWLibrary
 			return products;
 		}
 
-		static public async Task<Product> CreateProductAsync(Product p)
+		static public Task<Product> CreateProductAsync(Product p)
 		{
-			return await ProductService.CreateAsync(p);
+			return ProductService.CreateAsync(p);
 		}
 
-		static public async Task<Product> UpdateProductAsync(Product p)
+		static public Task<Product> UpdateProductAsync(Product p)
 		{
-			return await ProductService.UpdateAsync(p.Id.Value, p);
+			return ProductService.UpdateAsync(p.Id.Value, p);
 		}
 
 		static public List<Customer> GetCustomers()
@@ -191,7 +191,6 @@ namespace ONWLibrary
 
 				Collect collect = new Collect() { ProductId = p.Id.Value, CollectionId = cc.Id.Value };
 				retVal = CollectService.CreateAsync(collect).Result;
-
 			}
 			return retVal;
 		}
@@ -199,7 +198,7 @@ namespace ONWLibrary
 		static async public Task<List<CustomCollection>> GetCollections()
 		{
 			List<CustomCollection> list = new List<CustomCollection>();
-			int count = await CustomCollectionService.CountAsync();
+			int count = await CustomCollectionService.CountAsync().ConfigureAwait(false);
 			int pages = (count / 250) + 1;
 			for (int page = 1; page <= pages; page++)
 			{

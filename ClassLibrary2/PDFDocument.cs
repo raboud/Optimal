@@ -32,21 +32,17 @@ namespace ONWLibrary
 			int originalDpi = dpi;
 			try
 			{
-				//				for (int dpi = 20; dpi <= 100; dpi++)
 				{
-					//					using (Bitmap bm2 = bm.ScaleImage(dpi))
 					{
 						r = reader.Decode(bm);
 					}
 					if (r != null && r.BarcodeFormat == BarcodeFormat.UPC_A)
 					{
-//						System.Console.WriteLine("UPDecode - resolution {0} - {1}", originalDpi, dpi);
 						qrcode = r.Text;
-						//						break;
 					}
 				}
 			}
-			catch (Exception e)
+			catch (Exception )
 			{
 			}
 
@@ -85,7 +81,6 @@ namespace ONWLibrary
 
 			int page = 1;
 
-			//            for (int page = 1; page <= reader.NumberOfPages; page++)
 			{
 
 				PdfContentByte pdfContentByte = stamper.GetOverContent(page);
@@ -107,7 +102,6 @@ namespace ONWLibrary
 
 		public Bitmap GetImage(int index)
 		{
-			//return GetImage2(index);
 			parser.ProcessContent(index + 1, listener);
 			return listener.Image;
 		}
